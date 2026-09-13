@@ -191,7 +191,9 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
         {error && <p className="error-text">{error}</p>}
 
-        {mode === 'photos' && <AdminProductPhotos productId={product.id} />}
+        {mode === 'photos' && (
+          <AdminProductPhotos productId={product.id} productCode={product.product_code} />
+        )}
 
         {mode === 'view' && (
           <div className="row-actions">
