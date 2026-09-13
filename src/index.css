@@ -112,6 +112,9 @@ h1 {
 }
 
 .product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   background: var(--surface);
   border-radius: var(--radius);
   overflow: hidden;
@@ -164,6 +167,7 @@ h1 {
 .product-card-body {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 2px;
   padding: 8px 10px 10px;
 }
@@ -180,10 +184,25 @@ h1 {
   line-height: 1.25;
 }
 
+.product-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 2px;
+}
+
 .product-price {
   font-size: 0.95rem;
   color: var(--primary-dark);
   font-weight: 700;
+}
+
+.product-qty {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* Forms */

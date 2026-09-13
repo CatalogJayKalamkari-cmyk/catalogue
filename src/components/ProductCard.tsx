@@ -20,7 +20,10 @@ export function ProductCard({ product, imagePath }: Props) {
       <div className="product-card-body">
         <span className="product-code">{product.product_code}</span>
         <span className="product-name">{product.name}</span>
-        <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
+        <div className="product-price-row">
+          <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
+          <span className="product-qty">Qty: {product.quantity}</span>
+        </div>
       </div>
     </div>
   );
