@@ -144,22 +144,28 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
               </button>
             </div>
             <div className="row-inline">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={priceSelling}
-                onChange={(e) => setPriceSelling(e.target.value)}
-                placeholder={t('row.pricePlaceholderSelling')}
-              />
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={priceAcquired}
-                onChange={(e) => setPriceAcquired(e.target.value)}
-                placeholder={t('row.pricePlaceholderAcquired')}
-              />
+              <div className="field-group">
+                <span className="field-label">{t('addProduct.sellingPrice')}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={priceSelling}
+                  onChange={(e) => setPriceSelling(e.target.value)}
+                  placeholder={t('row.pricePlaceholderSelling')}
+                />
+              </div>
+              <div className="field-group">
+                <span className="field-label">{t('addProduct.acquiredPrice')}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={priceAcquired}
+                  onChange={(e) => setPriceAcquired(e.target.value)}
+                  placeholder={t('row.pricePlaceholderAcquired')}
+                />
+              </div>
             </div>
             <AdminProductPhotos
               productId={product.id}

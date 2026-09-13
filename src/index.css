@@ -708,6 +708,20 @@ select {
   min-width: 0;
 }
 
+.row-inline .field-group {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.field-label {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
 .row-actions {
   display: flex;
   gap: 8px;

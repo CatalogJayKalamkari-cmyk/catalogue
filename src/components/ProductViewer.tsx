@@ -71,17 +71,18 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
 
     if (Math.abs(dx) > Math.abs(dy)) {
       if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+      if (photos.length === 0) return;
       if (dx < 0) {
-        setPhotoIndex((i) => Math.min(i + 1, Math.max(photos.length - 1, 0)));
+        setPhotoIndex((i) => (i + 1) % photos.length);
       } else {
-        setPhotoIndex((i) => Math.max(i - 1, 0));
+        setPhotoIndex((i) => (i - 1 + photos.length) % photos.length);
       }
     } else {
       if (Math.abs(dy) < SWIPE_THRESHOLD) return;
       if (dy < 0) {
-        setProductIndex((i) => Math.min(i + 1, products.length - 1));
+        setProductIndex((i) => (i + 1) % products.length);
       } else {
-        setProductIndex((i) => Math.max(i - 1, 0));
+        setProductIndex((i) => (i - 1 + products.length) % products.length);
       }
     }
   }
