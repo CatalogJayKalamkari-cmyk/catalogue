@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import { processImageToWebp } from '../lib/imageProcessing';
 import { AdminNav } from '../components/AdminNav';
-import { ImageUploader } from '../components/ImageUploader';
+import { ImageUploader, type ImageEntry } from '../components/ImageUploader';
 import { TypeSelect } from '../components/TypeSelect';
 import type { AdminProduct } from '../types';
 
@@ -14,7 +14,8 @@ export default function AdminAddProduct() {
   const [priceSelling, setPriceSelling] = useState('');
   const [priceAcquired, setPriceAcquired] = useState('');
   const [quantity, setQuantity] = useState('1');
-  const [images, setImages] = useState<File[]>([]);
+  const [colorMode, setColorMode] = useState<'single' | 'multi-color'>('single');
+  const [images, setImages] = useState<ImageEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -25,6 +26,7 @@ export default function AdminAddProduct() {
     setPriceSelling('');
     setPriceAcquired('');
     setQuantity('1');
+    setColorMode('single');
     setImages([]);
   }
 
@@ -41,6 +43,10 @@ export default function AdminAddProduct() {
       setError('Please add at least one photo.');
       return;
     }
+    if (colorMode === 'multi-color' && images.some((img) => !img.color.trim())) {
+      setError('Enter a color name for each photo.');
+      return;
+    }
     const sellingNum = Number(priceSelling);
     const acquiredNum = Number(priceAcquired);
     const quantityNum = Number(quantity);
@@ -50,6 +56,10 @@ export default function AdminAddProduct() {
     }
     if (!Number.isFinite(acquiredNum) || acquiredNum < 0) {
       setError('Enter a valid acquired price.');
+      return;
+    }
+    if (sellingNum < acquiredNum) {
+      setError('Selling price cannot be less than acquired price.');
       return;
     }
     if (!Number.isInteger(quantityNum) || quantityNum < 0) {
@@ -75,16 +85,19 @@ export default function AdminAddProduct() {
       const product = rpcData as AdminProduct;
 
       for (let i = 0; i < images.length; i++) {
-        const webp = await processImageToWebp(images[i]);
+        const webp = await processImageToWebp(images[i].file);
         const storagePath = `${product.product_code}/${i}.webp`;
         const { error: uploadError } = await supabase.storage
           .from(PRODUCT_IMAGES_BUCKET)
           .upload(storagePath, webp, { contentType: 'image/webp', upsert: true });
         if (uploadError) throw new Error(uploadError.message);
 
-        const { error: imageRowError } = await supabase
-          .from('product_images')
-          .insert({ product_id: product.id, storage_path: storagePath, sort_order: i });
+        const { error: imageRowError } = await supabase.from('product_images').insert({
+          product_id: product.id,
+          storage_path: storagePath,
+          sort_order: i,
+          color_label: colorMode === 'multi-color' ? images[i].color.trim() : null,
+        });
         if (imageRowError) throw new Error(imageRowError.message);
       }
 
@@ -102,8 +115,21 @@ export default function AdminAddProduct() {
       <h1>Add Product</h1>
       <form className="product-form" onSubmit={handleSubmit}>
         <label>
+          Color Mode
+          <select value={colorMode} onChange={(e) => setColorMode(e.target.value as 'single' | 'multi-color')}>
+            <option value="single">Single product</option>
+            <option value="multi-color">Multi-color (each photo is a different color)</option>
+          </select>
+        </label>
+
+        <label>
           Photos
-          <ImageUploader files={images} onChange={setImages} max={3} />
+          <ImageUploader
+            entries={images}
+            onChange={setImages}
+            max={10}
+            showColorInput={colorMode === 'multi-color'}
+          />
         </label>
 
         <label>

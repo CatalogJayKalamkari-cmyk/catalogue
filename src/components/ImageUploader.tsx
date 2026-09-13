@@ -1,43 +1,64 @@
 import { useEffect, useState } from 'react';
 
-interface Props {
-  files: File[];
-  onChange: (files: File[]) => void;
-  max?: number;
+export interface ImageEntry {
+  file: File;
+  color: string;
 }
 
-export function ImageUploader({ files, onChange, max = 3 }: Props) {
+interface Props {
+  entries: ImageEntry[];
+  onChange: (entries: ImageEntry[]) => void;
+  max?: number;
+  showColorInput?: boolean;
+}
+
+export function ImageUploader({ entries, onChange, max = 10, showColorInput = false }: Props) {
   const [previews, setPreviews] = useState<string[]>([]);
 
   useEffect(() => {
-    const urls = files.map((f) => URL.createObjectURL(f));
+    const urls = entries.map((e) => URL.createObjectURL(e.file));
     setPreviews(urls);
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
-  }, [files]);
+  }, [entries]);
 
   function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
-    const picked = Array.from(e.target.files ?? []);
-    const combined = [...files, ...picked].slice(0, max);
+    const picked = Array.from(e.target.files ?? []).map((file) => ({ file, color: '' }));
+    const combined = [...entries, ...picked].slice(0, max);
     onChange(combined);
     e.target.value = '';
   }
 
   function removeAt(index: number) {
-    onChange(files.filter((_, i) => i !== index));
+    onChange(entries.filter((_, i) => i !== index));
+  }
+
+  function setColorAt(index: number, color: string) {
+    onChange(entries.map((e, i) => (i === index ? { ...e, color } : e)));
   }
 
   return (
     <div className="image-uploader">
       <div className="image-preview-row">
-        {previews.map((src, i) => (
-          <div className="image-preview" key={i}>
-            <img src={src} alt={`Photo ${i + 1}`} />
-            <button type="button" className="image-remove" onClick={() => removeAt(i)} aria-label="Remove photo">
-              ×
-            </button>
+        {entries.map((entry, i) => (
+          <div className="image-preview-item" key={i}>
+            <div className="image-preview">
+              <img src={previews[i]} alt={`Photo ${i + 1}`} />
+              <button type="button" className="image-remove" onClick={() => removeAt(i)} aria-label="Remove photo">
+                ×
+              </button>
+            </div>
+            {showColorInput && (
+              <input
+                className="image-color-input"
+                type="text"
+                placeholder="Color name"
+                value={entry.color}
+                onChange={(e) => setColorAt(i, e.target.value)}
+              />
+            )}
           </div>
         ))}
-        {files.length < max && (
+        {entries.length < max && (
           <label className="image-add-tile">
             <input type="file" accept="image/*" capture="environment" multiple onChange={handlePick} hidden />
             + Photo
@@ -45,7 +66,7 @@ export function ImageUploader({ files, onChange, max = 3 }: Props) {
         )}
       </div>
       <p className="hint-text">
-        {files.length}/{max} photos
+        {entries.length}/{max} photos
       </p>
     </div>
   );

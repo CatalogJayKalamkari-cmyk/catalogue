@@ -33,6 +33,8 @@ export interface ProductImage {
   product_id: string;
   storage_path: string;
   sort_order: number;
+  is_sold: boolean;
+  color_label: string | null;
 }
 
 export interface StockTransaction {

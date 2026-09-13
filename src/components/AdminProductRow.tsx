@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase, productImageUrl } from '../lib/supabaseClient';
 import type { AdminProduct } from '../types';
+import { AdminProductPhotos } from './AdminProductPhotos';
 
 interface Props {
   product: AdminProduct;
@@ -9,11 +10,12 @@ interface Props {
 }
 
 export function AdminProductRow({ product, imagePath, onChanged }: Props) {
-  const [mode, setMode] = useState<'view' | 'edit' | 'sell'>('view');
+  const [mode, setMode] = useState<'view' | 'edit' | 'sell' | 'restock' | 'photos'>('view');
   const [name, setName] = useState(product.name);
   const [priceSelling, setPriceSelling] = useState(String(product.price_selling));
   const [priceAcquired, setPriceAcquired] = useState(String(product.price_acquired));
   const [sellQty, setSellQty] = useState('1');
+  const [restockQty, setRestockQty] = useState('1');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -23,6 +25,10 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     const acquiredNum = Number(priceAcquired);
     if (!name.trim() || !Number.isFinite(sellingNum) || sellingNum < 0 || !Number.isFinite(acquiredNum) || acquiredNum < 0) {
       setError('Check the values entered.');
+      return;
+    }
+    if (sellingNum < acquiredNum) {
+      setError('Selling price cannot be less than acquired price.');
       return;
     }
     setSaving(true);
@@ -52,6 +58,27 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     }
     setSaving(true);
     const { error } = await supabase.rpc('record_sale', {
+      p_product_id: product.id,
+      p_quantity: qty,
+    });
+    setSaving(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setMode('view');
+    onChanged();
+  }
+
+  async function confirmRestock() {
+    setError(null);
+    const qty = Number(restockQty);
+    if (!Number.isInteger(qty) || qty <= 0) {
+      setError('Enter a valid quantity.');
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.rpc('restock_product', {
       p_product_id: product.id,
       p_quantity: qty,
     });
@@ -145,7 +172,26 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
           </div>
         )}
 
+        {mode === 'restock' && (
+          <div className="row-inline">
+            <input
+              type="number"
+              min="1"
+              value={restockQty}
+              onChange={(e) => setRestockQty(e.target.value)}
+            />
+            <button className="btn btn-primary" disabled={saving} onClick={confirmRestock}>
+              Confirm Restock
+            </button>
+            <button className="btn btn-secondary" onClick={() => setMode('view')}>
+              Cancel
+            </button>
+          </div>
+        )}
+
         {error && <p className="error-text">{error}</p>}
+
+        {mode === 'photos' && <AdminProductPhotos productId={product.id} />}
 
         {mode === 'view' && (
           <div className="row-actions">
@@ -159,8 +205,22 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
             >
               Record Sale
             </button>
+            <button className="btn btn-secondary" onClick={() => setMode('restock')}>
+              Restock
+            </button>
+            <button className="btn btn-secondary" onClick={() => setMode('photos')}>
+              Photos
+            </button>
             <button className="btn btn-secondary" disabled={saving} onClick={toggleArchive}>
               {product.is_active ? 'Archive' : 'Unarchive'}
+            </button>
+          </div>
+        )}
+
+        {mode === 'photos' && (
+          <div className="row-actions">
+            <button className="btn btn-secondary" onClick={() => setMode('view')}>
+              Done
             </button>
           </div>
         )}

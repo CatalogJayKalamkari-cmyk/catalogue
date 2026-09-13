@@ -309,6 +309,24 @@ h1 {
   color: rgba(255, 255, 255, 0.75);
 }
 
+.viewer-color-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.viewer-photo-sold-badge {
+  position: absolute;
+  top: 44px;
+  left: 12px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+}
+
 .viewer-badge-out {
   align-self: flex-start;
   padding: 3px 8px;
@@ -421,6 +439,20 @@ select {
   flex-wrap: wrap;
 }
 
+.image-preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 84px;
+}
+
+.image-color-input {
+  width: 84px;
+  padding: 4px 6px;
+  font-size: 0.7rem;
+  border-radius: 6px;
+}
+
 .image-preview {
   position: relative;
   width: 84px;
@@ -480,6 +512,36 @@ select {
 .inline-add-actions {
   display: flex;
   gap: 8px;
+}
+
+.admin-photo-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.admin-photo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-photo-thumb {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #f0eee9;
+}
+
+.admin-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Admin nav */

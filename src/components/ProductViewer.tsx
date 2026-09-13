@@ -14,7 +14,7 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
   const [productIndex, setProductIndex] = useState(startIndex);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [, forceRender] = useState(0);
-  const imageCache = useRef<Record<string, string[]>>({});
+  const imageCache = useRef<Record<string, { url: string; isSold: boolean; colorLabel: string | null }[]>>({});
   const dragStart = useRef<{ x: number; y: number } | null>(null);
 
   const product = products[productIndex];
@@ -35,12 +35,16 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
     let cancelled = false;
     supabase
       .from('product_images')
-      .select('storage_path')
+      .select('storage_path, is_sold, color_label')
       .eq('product_id', product.id)
       .order('sort_order')
       .then(({ data }) => {
         if (cancelled) return;
-        imageCache.current[product.id] = (data ?? []).map((row) => productImageUrl(row.storage_path));
+        imageCache.current[product.id] = (data ?? []).map((row) => ({
+          url: productImageUrl(row.storage_path),
+          isSold: row.is_sold,
+          colorLabel: row.color_label,
+        }));
         forceRender((n) => n + 1);
       });
     return () => {
@@ -96,16 +100,18 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
 
       <div className="viewer-media">
         {currentPhoto ? (
-          <img src={currentPhoto} alt={product.name} draggable={false} />
+          <img src={currentPhoto.url} alt={product.name} draggable={false} />
         ) : (
           <div className="viewer-media-placeholder">No photo</div>
         )}
+        {currentPhoto?.isSold && <span className="viewer-photo-sold-badge">Sold</span>}
       </div>
 
       <div className="viewer-details">
         {!product.in_stock && <span className="viewer-badge-out">Out of Stock</span>}
         <span className="product-code">{product.product_code}</span>
         <span className="product-name">{product.name}</span>
+        {currentPhoto?.colorLabel && <span className="viewer-color-label">Color: {currentPhoto.colorLabel}</span>}
         <div className="product-price-row">
           <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
           <span className="product-qty">Qty: {product.quantity}</span>
