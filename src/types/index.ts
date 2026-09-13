@@ -36,6 +36,7 @@ export interface ProductImage {
   storage_path: string;
   sort_order: number;
   quantity: number;
+  initial_quantity: number;
   color_label: string | null;
 }
 

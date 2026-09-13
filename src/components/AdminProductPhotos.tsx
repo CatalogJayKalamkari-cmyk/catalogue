@@ -13,7 +13,8 @@ const MAX_PHOTOS = 10;
 
 export function AdminProductPhotos({ productId, productCode, isMultiColor }: Props) {
   const [images, setImages] = useState<ProductImage[]>([]);
-  const [qtyEdits, setQtyEdits] = useState<Record<string, string>>({});
+  const [saleQty, setSaleQty] = useState<Record<string, string>>({});
+  const [acquireQty, setAcquireQty] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -30,9 +31,10 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
       .order('sort_order');
     if (error) setError(error.message);
     setImages(data ?? []);
-    const edits: Record<string, string> = {};
-    for (const img of data ?? []) edits[img.id] = String(img.quantity);
-    setQtyEdits(edits);
+    const defaults: Record<string, string> = {};
+    for (const img of data ?? []) defaults[img.id] = '1';
+    setSaleQty(defaults);
+    setAcquireQty(defaults);
     setLoading(false);
   }, [productId]);
 
@@ -40,14 +42,18 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
     load();
   }, [load]);
 
-  async function saveQuantity(img: ProductImage) {
-    const newQty = Number(qtyEdits[img.id]);
-    if (!Number.isInteger(newQty) || newQty < 0) {
-      setError('Enter a valid quantity.');
+  async function saveSale(img: ProductImage) {
+    const qty = Number(saleQty[img.id]);
+    if (!Number.isInteger(qty) || qty <= 0) {
+      setError('Enter a valid sale quantity.');
+      return;
+    }
+    if (qty > img.quantity) {
+      setError(`Only ${img.quantity} of this color in stock.`);
       return;
     }
     setError(null);
-    const { error } = await supabase.from('product_images').update({ quantity: newQty }).eq('id', img.id);
+    const { error } = await supabase.rpc('sell_photo', { p_image_id: img.id, p_quantity: qty });
     if (error) {
       setError(error.message);
       return;
@@ -55,9 +61,14 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
     load();
   }
 
-  async function sellOne(img: ProductImage) {
+  async function saveAcquire(img: ProductImage) {
+    const qty = Number(acquireQty[img.id]);
+    if (!Number.isInteger(qty) || qty <= 0) {
+      setError('Enter a valid acquired quantity.');
+      return;
+    }
     setError(null);
-    const { error } = await supabase.rpc('sell_photo', { p_image_id: img.id, p_quantity: 1 });
+    const { error } = await supabase.rpc('acquire_photo', { p_image_id: img.id, p_quantity: qty });
     if (error) {
       setError(error.message);
       return;
@@ -88,12 +99,14 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
         .upload(storagePath, webp, { contentType: 'image/webp', upsert: true });
       if (uploadError) throw new Error(uploadError.message);
 
+      const newQty = isMultiColor ? Number(pendingQty) : 1;
       const { error: insertError } = await supabase.from('product_images').insert({
         product_id: productId,
         storage_path: storagePath,
         sort_order: nextSortOrder,
         color_label: pendingColor.trim() || null,
-        quantity: isMultiColor ? Number(pendingQty) : 1,
+        quantity: newQty,
+        initial_quantity: newQty,
       });
       if (insertError) throw new Error(insertError.message);
 
@@ -122,20 +135,35 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
           {img.color_label && <span className="hint-text">{img.color_label}</span>}
           {isMultiColor && (
             <>
+              <span className="hint-text">
+                Initial: {img.initial_quantity} · Current: {img.quantity}
+              </span>
+
+              <span className="hint-text">Sale</span>
               <div className="row-inline">
                 <input
                   type="number"
-                  min="0"
-                  value={qtyEdits[img.id] ?? String(img.quantity)}
-                  onChange={(e) => setQtyEdits((prev) => ({ ...prev, [img.id]: e.target.value }))}
+                  min="1"
+                  value={saleQty[img.id] ?? '1'}
+                  onChange={(e) => setSaleQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
                 />
-                <button className="btn btn-secondary" onClick={() => saveQuantity(img)}>
+                <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => saveSale(img)}>
                   Save
                 </button>
               </div>
-              <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => sellOne(img)}>
-                Sell 1
-              </button>
+
+              <span className="hint-text">Acquired</span>
+              <div className="row-inline">
+                <input
+                  type="number"
+                  min="1"
+                  value={acquireQty[img.id] ?? '1'}
+                  onChange={(e) => setAcquireQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
+                />
+                <button className="btn btn-secondary" onClick={() => saveAcquire(img)}>
+                  Save
+                </button>
+              </div>
             </>
           )}
         </div>

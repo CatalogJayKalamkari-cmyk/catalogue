@@ -100,12 +100,14 @@ export default function AdminAddProduct() {
           .upload(storagePath, webp, { contentType: 'image/webp', upsert: true });
         if (uploadError) throw new Error(uploadError.message);
 
+        const imgQty = isMultiColor ? Number(images[i].quantity) : 1;
         const { error: imageRowError } = await supabase.from('product_images').insert({
           product_id: product.id,
           storage_path: storagePath,
           sort_order: i,
           color_label: isMultiColor ? images[i].color.trim() : null,
-          quantity: isMultiColor ? Number(images[i].quantity) : 1,
+          quantity: imgQty,
+          initial_quantity: imgQty,
         });
         if (imageRowError) throw new Error(imageRowError.message);
       }
