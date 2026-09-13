@@ -7,11 +7,14 @@ interface Props {
   productId: string;
   productCode: string;
   isMultiColor: boolean;
+  view: 'sale' | 'acquire' | 'both';
 }
 
 const MAX_PHOTOS = 10;
 
-export function AdminProductPhotos({ productId, productCode, isMultiColor }: Props) {
+export function AdminProductPhotos({ productId, productCode, isMultiColor, view }: Props) {
+  const showSale = view === 'sale' || view === 'both';
+  const showAcquire = view === 'acquire' || view === 'both';
   const [images, setImages] = useState<ProductImage[]>([]);
   const [saleQty, setSaleQty] = useState<Record<string, string>>({});
   const [acquireQty, setAcquireQty] = useState<Record<string, string>>({});
@@ -134,11 +137,13 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
           </div>
           {img.color_label && <span className="hint-text">{img.color_label}</span>}
           {isMultiColor && (
-            <>
-              <span className="hint-text">
-                Initial: {img.initial_quantity} · Current: {img.quantity}
-              </span>
+            <span className="hint-text">
+              Initial: {img.initial_quantity} · Current: {img.quantity}
+            </span>
+          )}
 
+          {isMultiColor && showSale && (
+            <>
               <span className="hint-text">Sale</span>
               <div className="row-inline">
                 <input
@@ -151,7 +156,11 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
                   Save
                 </button>
               </div>
+            </>
+          )}
 
+          {isMultiColor && showAcquire && (
+            <>
               <span className="hint-text">Acquired</span>
               <div className="row-inline">
                 <input
@@ -171,14 +180,14 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
 
       {images.length === 0 && <p className="hint-text">No photos on this product.</p>}
 
-      {images.length < MAX_PHOTOS && !pendingFile && (
+      {showAcquire && images.length < MAX_PHOTOS && !pendingFile && (
         <label className="image-add-tile">
           <input type="file" accept="image/*" capture="environment" onChange={handlePick} hidden />
           + Photo
         </label>
       )}
 
-      {pendingFile && (
+      {showAcquire && pendingFile && (
         <div className="admin-photo-item">
           <div className="admin-photo-thumb">
             <img src={URL.createObjectURL(pendingFile)} alt="New photo preview" />
