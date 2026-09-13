@@ -10,7 +10,7 @@ import { useLanguage } from '../lib/i18n';
 const CATALOG_LIMIT = 500;
 
 export default function Catalog() {
-  const { t } = useLanguage();
+  const { t, tc } = useLanguage();
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [types, setTypes] = useState<ProductType[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
@@ -113,7 +113,7 @@ export default function Catalog() {
                 className={categoryFilter === c.id ? 'chip chip-active' : 'chip'}
                 onClick={() => setCategoryFilter(c.id)}
               >
-                {c.name}
+                {tc(c.name)}
               </button>
             ))}
           </div>

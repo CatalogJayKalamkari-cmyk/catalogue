@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function TypeSelect({ value, onChange }: Props) {
-  const { t } = useLanguage();
+  const { t, tc } = useLanguage();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [types, setTypes] = useState<ProductType[]>([]);
@@ -88,7 +88,7 @@ export function TypeSelect({ value, onChange }: Props) {
         </option>
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
-            {c.name}
+            {tc(c.name)}
           </option>
         ))}
       </select>

@@ -259,10 +259,34 @@ const translations = {
 
 export type TranslationKey = keyof typeof translations.en;
 
+// The 16 fixed product categories are database rows (not static UI copy),
+// so they need their own lookup rather than the translations dictionary
+// above. Falls back to the original name for anything not in this list
+// (e.g. if the admin renames a category or adds a new one).
+const categoryTranslationsTe: Record<string, string> = {
+  Sarees: 'చీరలు',
+  'Dress Materials': 'డ్రెస్ మెటీరియల్స్',
+  'Dupattas & Stoles': 'దుపట్టాలు & స్టోల్స్',
+  'Blouse Products': 'బ్లౌజ్ ఉత్పత్తులు',
+  "Women's Ready-Made Clothing": 'మహిళల రెడీమేడ్ దుస్తులు',
+  "Men's Products": 'పురుషుల ఉత్పత్తులు',
+  'Bags & Pouches': 'బ్యాగులు & పర్సులు',
+  'Home Decor / Wall Art': 'గృహాలంకరణ / వాల్ ఆర్ట్',
+  'Home Furnishing': 'గృహ వస్త్రాలు',
+  'Kitchen / Dining': 'వంటగది / డైనింగ్',
+  'Personal / Utility Items': 'వ్యక్తిగత / ఉపయోగ వస్తువులు',
+  'Baby & Kids': 'శిశువులు & పిల్లలు',
+  Accessories: 'ఉపకరణాలు',
+  'Stationery / Gift Products': 'స్టేషనరీ / బహుమతి వస్తువులు',
+  'Decorative / Festival Products': 'అలంకరణ / పండుగ వస్తువులు',
+  'Fabric / Raw Material': 'వస్త్రం / ముడి పదార్థం',
+};
+
 interface LanguageContextValue {
   lang: Lang;
   toggleLang: () => void;
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
+  tc: (categoryName: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -297,7 +321,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return template.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
   }
 
-  return <LanguageContext.Provider value={{ lang, toggleLang, t }}>{children}</LanguageContext.Provider>;
+  function tc(categoryName: string): string {
+    if (lang !== 'te') return categoryName;
+    return categoryTranslationsTe[categoryName] ?? categoryName;
+  }
+
+  return <LanguageContext.Provider value={{ lang, toggleLang, t, tc }}>{children}</LanguageContext.Provider>;
 }
 
 export function useLanguage() {
