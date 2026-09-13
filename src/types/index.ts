@@ -11,6 +11,7 @@ export interface PublicProduct {
   type_id: string;
   price_selling: number;
   quantity: number;
+  is_multi_color: boolean;
   in_stock: boolean;
   created_at: string;
 }
@@ -24,6 +25,7 @@ export interface AdminProduct {
   price_acquired: number;
   quantity: number;
   is_active: boolean;
+  is_multi_color: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -33,7 +35,7 @@ export interface ProductImage {
   product_id: string;
   storage_path: string;
   sort_order: number;
-  is_sold: boolean;
+  quantity: number;
   color_label: string | null;
 }
 

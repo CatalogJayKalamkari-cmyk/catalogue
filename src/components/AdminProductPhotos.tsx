@@ -6,16 +6,19 @@ import type { ProductImage } from '../types';
 interface Props {
   productId: string;
   productCode: string;
+  isMultiColor: boolean;
 }
 
 const MAX_PHOTOS = 10;
 
-export function AdminProductPhotos({ productId, productCode }: Props) {
+export function AdminProductPhotos({ productId, productCode, isMultiColor }: Props) {
   const [images, setImages] = useState<ProductImage[]>([]);
+  const [qtyEdits, setQtyEdits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingColor, setPendingColor] = useState('');
+  const [pendingQty, setPendingQty] = useState('1');
   const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
@@ -27,6 +30,9 @@ export function AdminProductPhotos({ productId, productCode }: Props) {
       .order('sort_order');
     if (error) setError(error.message);
     setImages(data ?? []);
+    const edits: Record<string, string> = {};
+    for (const img of data ?? []) edits[img.id] = String(img.quantity);
+    setQtyEdits(edits);
     setLoading(false);
   }, [productId]);
 
@@ -34,12 +40,24 @@ export function AdminProductPhotos({ productId, productCode }: Props) {
     load();
   }, [load]);
 
-  async function toggleSold(img: ProductImage) {
+  async function saveQuantity(img: ProductImage) {
+    const newQty = Number(qtyEdits[img.id]);
+    if (!Number.isInteger(newQty) || newQty < 0) {
+      setError('Enter a valid quantity.');
+      return;
+    }
     setError(null);
-    const { error } = await supabase
-      .from('product_images')
-      .update({ is_sold: !img.is_sold })
-      .eq('id', img.id);
+    const { error } = await supabase.from('product_images').update({ quantity: newQty }).eq('id', img.id);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    load();
+  }
+
+  async function sellOne(img: ProductImage) {
+    setError(null);
+    const { error } = await supabase.rpc('sell_photo', { p_image_id: img.id, p_quantity: 1 });
     if (error) {
       setError(error.message);
       return;
@@ -55,6 +73,10 @@ export function AdminProductPhotos({ productId, productCode }: Props) {
 
   async function confirmAddPhoto() {
     if (!pendingFile) return;
+    if (isMultiColor && (!Number.isInteger(Number(pendingQty)) || Number(pendingQty) < 0)) {
+      setError('Enter a valid quantity for this color.');
+      return;
+    }
     setError(null);
     setUploading(true);
     try {
@@ -71,11 +93,13 @@ export function AdminProductPhotos({ productId, productCode }: Props) {
         storage_path: storagePath,
         sort_order: nextSortOrder,
         color_label: pendingColor.trim() || null,
+        quantity: isMultiColor ? Number(pendingQty) : 1,
       });
       if (insertError) throw new Error(insertError.message);
 
       setPendingFile(null);
       setPendingColor('');
+      setPendingQty('1');
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not add photo.');
@@ -93,15 +117,27 @@ export function AdminProductPhotos({ productId, productCode }: Props) {
         <div key={img.id} className="admin-photo-item">
           <div className="admin-photo-thumb">
             <img src={productImageUrl(img.storage_path)} alt="" />
-            {img.is_sold && <span className="badge badge-out">Sold</span>}
+            {isMultiColor && img.quantity === 0 && <span className="badge badge-out">Sold</span>}
           </div>
           {img.color_label && <span className="hint-text">{img.color_label}</span>}
-          <button
-            className={img.is_sold ? 'btn btn-secondary' : 'btn btn-primary'}
-            onClick={() => toggleSold(img)}
-          >
-            {img.is_sold ? 'Mark Available' : 'Mark Sold'}
-          </button>
+          {isMultiColor && (
+            <>
+              <div className="row-inline">
+                <input
+                  type="number"
+                  min="0"
+                  value={qtyEdits[img.id] ?? String(img.quantity)}
+                  onChange={(e) => setQtyEdits((prev) => ({ ...prev, [img.id]: e.target.value }))}
+                />
+                <button className="btn btn-secondary" onClick={() => saveQuantity(img)}>
+                  Save
+                </button>
+              </div>
+              <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => sellOne(img)}>
+                Sell 1
+              </button>
+            </>
+          )}
         </div>
       ))}
 
@@ -126,6 +162,17 @@ export function AdminProductPhotos({ productId, productCode }: Props) {
             value={pendingColor}
             onChange={(e) => setPendingColor(e.target.value)}
           />
+          {isMultiColor && (
+            <input
+              className="image-color-input"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="Qty"
+              value={pendingQty}
+              onChange={(e) => setPendingQty(e.target.value)}
+            />
+          )}
           <div className="row-inline">
             <button className="btn btn-primary" disabled={uploading} onClick={confirmAddPhoto}>
               {uploading ? 'Adding…' : 'Add'}

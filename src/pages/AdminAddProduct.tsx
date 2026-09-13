@@ -43,13 +43,20 @@ export default function AdminAddProduct() {
       setError('Please add at least one photo.');
       return;
     }
-    if (colorMode === 'multi-color' && images.some((img) => !img.color.trim())) {
+    const isMultiColor = colorMode === 'multi-color';
+    if (isMultiColor && images.some((img) => !img.color.trim())) {
       setError('Enter a color name for each photo.');
+      return;
+    }
+    if (isMultiColor && images.some((img) => !Number.isInteger(Number(img.quantity)) || Number(img.quantity) < 0)) {
+      setError('Enter a valid quantity for each color.');
       return;
     }
     const sellingNum = Number(priceSelling);
     const acquiredNum = Number(priceAcquired);
-    const quantityNum = Number(quantity);
+    const quantityNum = isMultiColor
+      ? images.reduce((sum, img) => sum + Number(img.quantity), 0)
+      : Number(quantity);
     if (!Number.isFinite(sellingNum) || sellingNum < 0) {
       setError('Enter a valid selling price.');
       return;
@@ -62,7 +69,7 @@ export default function AdminAddProduct() {
       setError('Selling price cannot be less than acquired price.');
       return;
     }
-    if (!Number.isInteger(quantityNum) || quantityNum < 0) {
+    if (!isMultiColor && (!Number.isInteger(quantityNum) || quantityNum < 0)) {
       setError('Enter a valid quantity.');
       return;
     }
@@ -76,6 +83,7 @@ export default function AdminAddProduct() {
           p_price_selling: sellingNum,
           p_price_acquired: acquiredNum,
           p_quantity: quantityNum,
+          p_is_multi_color: isMultiColor,
         })
         .single();
 
@@ -96,7 +104,8 @@ export default function AdminAddProduct() {
           product_id: product.id,
           storage_path: storagePath,
           sort_order: i,
-          color_label: colorMode === 'multi-color' ? images[i].color.trim() : null,
+          color_label: isMultiColor ? images[i].color.trim() : null,
+          quantity: isMultiColor ? Number(images[i].quantity) : 1,
         });
         if (imageRowError) throw new Error(imageRowError.message);
       }
@@ -170,15 +179,25 @@ export default function AdminAddProduct() {
 
         <label>
           Quantity
-          <input
-            type="number"
-            min="0"
-            step="1"
-            inputMode="numeric"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            required
-          />
+          {colorMode === 'multi-color' ? (
+            <input
+              type="number"
+              value={images.reduce((sum, img) => sum + (Number(img.quantity) || 0), 0)}
+              disabled
+              readOnly
+            />
+          ) : (
+            <input
+              type="number"
+              min="0"
+              step="1"
+              inputMode="numeric"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
+            />
+          )}
+          {colorMode === 'multi-color' && <span className="hint-text">Sum of each color's quantity above.</span>}
         </label>
 
         {error && <p className="error-text">{error}</p>}

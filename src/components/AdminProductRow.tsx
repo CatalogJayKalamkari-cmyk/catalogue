@@ -192,7 +192,15 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         {error && <p className="error-text">{error}</p>}
 
         {mode === 'photos' && (
-          <AdminProductPhotos productId={product.id} productCode={product.product_code} />
+          <AdminProductPhotos
+            productId={product.id}
+            productCode={product.product_code}
+            isMultiColor={product.is_multi_color}
+          />
+        )}
+
+        {mode === 'view' && product.is_multi_color && (
+          <p className="hint-text">Stock is managed per color under Photos.</p>
         )}
 
         {mode === 'view' && (
@@ -200,16 +208,20 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
             <button className="btn btn-secondary" onClick={() => setMode('edit')}>
               Edit
             </button>
-            <button
-              className="btn btn-primary"
-              disabled={product.quantity === 0}
-              onClick={() => setMode('sell')}
-            >
-              Record Sale
-            </button>
-            <button className="btn btn-secondary" onClick={() => setMode('restock')}>
-              Restock
-            </button>
+            {!product.is_multi_color && (
+              <>
+                <button
+                  className="btn btn-primary"
+                  disabled={product.quantity === 0}
+                  onClick={() => setMode('sell')}
+                >
+                  Record Sale
+                </button>
+                <button className="btn btn-secondary" onClick={() => setMode('restock')}>
+                  Restock
+                </button>
+              </>
+            )}
             <button className="btn btn-secondary" onClick={() => setMode('photos')}>
               Photos
             </button>

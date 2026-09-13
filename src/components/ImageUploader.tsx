@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 export interface ImageEntry {
   file: File;
   color: string;
+  quantity: string;
 }
 
 interface Props {
@@ -22,7 +23,7 @@ export function ImageUploader({ entries, onChange, max = 10, showColorInput = fa
   }, [entries]);
 
   function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
-    const picked = Array.from(e.target.files ?? []).map((file) => ({ file, color: '' }));
+    const picked = Array.from(e.target.files ?? []).map((file) => ({ file, color: '', quantity: '1' }));
     const combined = [...entries, ...picked].slice(0, max);
     onChange(combined);
     e.target.value = '';
@@ -34,6 +35,10 @@ export function ImageUploader({ entries, onChange, max = 10, showColorInput = fa
 
   function setColorAt(index: number, color: string) {
     onChange(entries.map((e, i) => (i === index ? { ...e, color } : e)));
+  }
+
+  function setQuantityAt(index: number, quantity: string) {
+    onChange(entries.map((e, i) => (i === index ? { ...e, quantity } : e)));
   }
 
   return (
@@ -48,13 +53,24 @@ export function ImageUploader({ entries, onChange, max = 10, showColorInput = fa
               </button>
             </div>
             {showColorInput && (
-              <input
-                className="image-color-input"
-                type="text"
-                placeholder="Color name"
-                value={entry.color}
-                onChange={(e) => setColorAt(i, e.target.value)}
-              />
+              <>
+                <input
+                  className="image-color-input"
+                  type="text"
+                  placeholder="Color name"
+                  value={entry.color}
+                  onChange={(e) => setColorAt(i, e.target.value)}
+                />
+                <input
+                  className="image-color-input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Qty"
+                  value={entry.quantity}
+                  onChange={(e) => setQuantityAt(i, e.target.value)}
+                />
+              </>
             )}
           </div>
         ))}
