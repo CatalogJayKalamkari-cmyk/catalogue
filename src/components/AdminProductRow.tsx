@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase, productImageUrl } from '../lib/supabaseClient';
 import type { AdminProduct } from '../types';
 import { AdminProductPhotos } from './AdminProductPhotos';
+import { useLanguage } from '../lib/i18n';
 
 interface Props {
   product: AdminProduct;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function AdminProductRow({ product, imagePath, onChanged }: Props) {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<'view' | 'edit' | 'sell' | 'restock' | 'colors-sale' | 'colors-acquire'>(
     'view'
   );
@@ -26,11 +28,11 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     const sellingNum = Number(priceSelling);
     const acquiredNum = Number(priceAcquired);
     if (!name.trim() || !Number.isFinite(sellingNum) || sellingNum < 0 || !Number.isFinite(acquiredNum) || acquiredNum < 0) {
-      setError('Check the values entered.');
+      setError(t('row.checkValues'));
       return;
     }
     if (sellingNum < acquiredNum) {
-      setError('Selling price cannot be less than acquired price.');
+      setError(t('row.priceError'));
       return;
     }
     setSaving(true);
@@ -51,11 +53,11 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     setError(null);
     const qty = Number(sellQty);
     if (!Number.isInteger(qty) || qty <= 0) {
-      setError('Enter a valid quantity.');
+      setError(t('row.invalidQty'));
       return;
     }
     if (qty > product.quantity) {
-      setError(`Only ${product.quantity} in stock.`);
+      setError(t('row.onlyInStock', { n: product.quantity }));
       return;
     }
     setSaving(true);
@@ -76,7 +78,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     setError(null);
     const qty = Number(restockQty);
     if (!Number.isInteger(qty) || qty <= 0) {
-      setError('Enter a valid quantity.');
+      setError(t('row.invalidQty'));
       return;
     }
     setSaving(true);
@@ -113,7 +115,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         {imagePath ? (
           <img src={productImageUrl(imagePath)} alt={product.name} loading="lazy" />
         ) : (
-          <div className="product-card-image-placeholder">No photo</div>
+          <div className="product-card-image-placeholder">{t('row.noPhoto')}</div>
         )}
       </div>
 
@@ -130,7 +132,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
                 step="0.01"
                 value={priceSelling}
                 onChange={(e) => setPriceSelling(e.target.value)}
-                placeholder="Selling"
+                placeholder={t('row.pricePlaceholderSelling')}
               />
               <input
                 type="number"
@@ -138,7 +140,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
                 step="0.01"
                 value={priceAcquired}
                 onChange={(e) => setPriceAcquired(e.target.value)}
-                placeholder="Acquired"
+                placeholder={t('row.pricePlaceholderAcquired')}
               />
             </div>
             <AdminProductPhotos
@@ -152,14 +154,14 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
           <>
             <span className="product-name">{product.name}</span>
             <span className="hint-text">
-              Sell ₹{product.price_selling.toLocaleString('en-IN')} · Cost ₹
+              {t('row.sellLabel')} ₹{product.price_selling.toLocaleString('en-IN')} · {t('row.costLabel')} ₹
               {product.price_acquired.toLocaleString('en-IN')}
             </span>
           </>
         )}
 
         <span className="hint-text">
-          Qty: {product.quantity} {!product.is_active && '· Archived'}
+          {t('row.qty')}: {product.quantity} {!product.is_active && `· ${t('row.archived')}`}
         </span>
 
         {mode === 'sell' && (
@@ -172,10 +174,10 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
               onChange={(e) => setSellQty(e.target.value)}
             />
             <button className="btn btn-primary" disabled={saving} onClick={confirmSale}>
-              Confirm Sale
+              {t('row.confirmSale')}
             </button>
             <button className="btn btn-secondary" onClick={() => setMode('view')}>
-              Cancel
+              {t('row.cancel')}
             </button>
           </div>
         )}
@@ -189,10 +191,10 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
               onChange={(e) => setRestockQty(e.target.value)}
             />
             <button className="btn btn-primary" disabled={saving} onClick={confirmRestock}>
-              Confirm Acquired
+              {t('row.confirmAcquired')}
             </button>
             <button className="btn btn-secondary" onClick={() => setMode('view')}>
-              Cancel
+              {t('row.cancel')}
             </button>
           </div>
         )}
@@ -209,21 +211,21 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         )}
 
         {mode === 'view' && product.is_multi_color && (
-          <p className="hint-text">Stock is managed per color below.</p>
+          <p className="hint-text">{t('row.perColorHint')}</p>
         )}
 
         {mode === 'view' && (
           <div className="row-actions">
             <button className="btn btn-secondary" onClick={() => setMode('edit')}>
-              Edit
+              {t('row.edit')}
             </button>
             {product.is_multi_color ? (
               <>
                 <button className="btn btn-primary" onClick={() => setMode('colors-sale')}>
-                  Sale
+                  {t('row.sale')}
                 </button>
                 <button className="btn btn-secondary" onClick={() => setMode('colors-acquire')}>
-                  Acquired
+                  {t('row.acquired')}
                 </button>
               </>
             ) : (
@@ -233,15 +235,15 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
                   disabled={product.quantity === 0}
                   onClick={() => setMode('sell')}
                 >
-                  Sale
+                  {t('row.sale')}
                 </button>
                 <button className="btn btn-secondary" onClick={() => setMode('restock')}>
-                  Acquired
+                  {t('row.acquired')}
                 </button>
               </>
             )}
             <button className="btn btn-secondary" disabled={saving} onClick={toggleArchive}>
-              {product.is_active ? 'Archive' : 'Unarchive'}
+              {product.is_active ? t('row.archive') : t('row.unarchive')}
             </button>
           </div>
         )}
@@ -249,7 +251,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         {(mode === 'colors-sale' || mode === 'colors-acquire') && (
           <div className="row-actions">
             <button className="btn btn-secondary" onClick={() => setMode('view')}>
-              Done
+              {t('row.done')}
             </button>
           </div>
         )}
@@ -257,10 +259,10 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         {mode === 'edit' && (
           <div className="row-actions">
             <button className="btn btn-primary" disabled={saving} onClick={saveEdit}>
-              Save
+              {t('row.save')}
             </button>
             <button className="btn btn-secondary" onClick={() => setMode('view')}>
-              Cancel
+              {t('row.cancel')}
             </button>
           </div>
         )}

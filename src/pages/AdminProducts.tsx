@@ -3,8 +3,10 @@ import { supabase } from '../lib/supabaseClient';
 import type { AdminProduct } from '../types';
 import { AdminNav } from '../components/AdminNav';
 import { AdminProductRow } from '../components/AdminProductRow';
+import { useLanguage } from '../lib/i18n';
 
 export default function AdminProducts() {
+  const { t } = useLanguage();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   const [search, setSearch] = useState('');
@@ -44,11 +46,11 @@ export default function AdminProducts() {
         setThumbnails(map);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not reach the server. Check your connection.');
+      setError(err instanceof Error ? err.message : t('error.network'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     load();
@@ -64,18 +66,18 @@ export default function AdminProducts() {
 
   return (
     <div className="page admin-page">
-      <h1>Products</h1>
+      <h1>{t('products.title')}</h1>
       <input
         className="search-input"
         type="search"
-        placeholder="Search name or code…"
+        placeholder={t('catalog.search')}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {loading && <p>Loading…</p>}
+      {loading && <p>{t('dashboard.loading')}</p>}
       {error && <p className="error-text">{error}</p>}
-      {!loading && !error && filtered.length === 0 && <p>No products found.</p>}
+      {!loading && !error && filtered.length === 0 && <p>{t('catalog.noProducts')}</p>}
 
       <div className="admin-product-list">
         {filtered.map((p) => (

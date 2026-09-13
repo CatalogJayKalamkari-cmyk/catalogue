@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import { AdminNav } from '../components/AdminNav';
 import { StatCard } from '../components/StatCard';
+import { useLanguage } from '../lib/i18n';
 
 interface Stats {
   totalProducts: number;
@@ -40,6 +41,7 @@ async function getStorageUsedBytes(): Promise<number> {
 }
 
 export default function AdminDashboard() {
+  const { t } = useLanguage();
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,7 +66,7 @@ export default function AdminDashboard() {
             productsRes.error?.message ??
               salesRes.error?.message ??
               salesTodayRes.error?.message ??
-              'Failed to load stats'
+              t('dashboard.failedToLoad')
           );
           return;
         }
@@ -84,29 +86,29 @@ export default function AdminDashboard() {
           storageUsedBytes,
         });
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not reach the server. Check your connection.');
+        setError(err instanceof Error ? err.message : t('error.network'));
       }
     }
 
     load();
-  }, []);
+  }, [t]);
 
   return (
     <div className="page admin-page">
-      <h1>Dashboard</h1>
+      <h1>{t('dashboard.title')}</h1>
       {error && <p className="error-text">{error}</p>}
-      {!stats && !error && <p>Loading…</p>}
+      {!stats && !error && <p>{t('dashboard.loading')}</p>}
       {stats && (
         <div className="stat-grid">
-          <StatCard label="Total Products" value={stats.totalProducts.toString()} />
-          <StatCard label="Quantity Remaining" value={stats.quantityRemaining.toString()} />
+          <StatCard label={t('dashboard.totalProducts')} value={stats.totalProducts.toString()} />
+          <StatCard label={t('dashboard.quantityRemaining')} value={stats.quantityRemaining.toString()} />
           <StatCard
-            label="Revenue Generated"
+            label={t('dashboard.revenueGenerated')}
             value={`₹${stats.revenueGenerated.toLocaleString('en-IN')}`}
           />
-          <StatCard label="Added Today" value={stats.addedToday.toString()} />
-          <StatCard label="Sold Today" value={stats.soldToday.toString()} />
-          <StatCard label="Storage Used" value={formatStorage(stats.storageUsedBytes)} />
+          <StatCard label={t('dashboard.addedToday')} value={stats.addedToday.toString()} />
+          <StatCard label={t('dashboard.soldToday')} value={stats.soldToday.toString()} />
+          <StatCard label={t('dashboard.storageUsed')} value={formatStorage(stats.storageUsedBytes)} />
         </div>
       )}
       <AdminNav />

@@ -5,10 +5,12 @@ import { processImageToWebp } from '../lib/imageProcessing';
 import { AdminNav } from '../components/AdminNav';
 import { ImageUploader, type ImageEntry } from '../components/ImageUploader';
 import { TypeSelect } from '../components/TypeSelect';
+import { useLanguage } from '../lib/i18n';
 import type { AdminProduct } from '../types';
 
 export default function AdminAddProduct() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [typeId, setTypeId] = useState('');
   const [priceSelling, setPriceSelling] = useState('');
@@ -36,20 +38,20 @@ export default function AdminAddProduct() {
     setSuccess(null);
 
     if (!typeId) {
-      setError('Please select a product type.');
+      setError(t('addProduct.selectType'));
       return;
     }
     if (images.length === 0) {
-      setError('Please add at least one photo.');
+      setError(t('addProduct.needPhoto'));
       return;
     }
     const isMultiColor = colorMode === 'multi-color';
     if (isMultiColor && images.some((img) => !img.color.trim())) {
-      setError('Enter a color name for each photo.');
+      setError(t('addProduct.needColorName'));
       return;
     }
     if (isMultiColor && images.some((img) => !Number.isInteger(Number(img.quantity)) || Number(img.quantity) < 0)) {
-      setError('Enter a valid quantity for each color.');
+      setError(t('addProduct.needColorQty'));
       return;
     }
     const sellingNum = Number(priceSelling);
@@ -58,19 +60,19 @@ export default function AdminAddProduct() {
       ? images.reduce((sum, img) => sum + Number(img.quantity), 0)
       : Number(quantity);
     if (!Number.isFinite(sellingNum) || sellingNum < 0) {
-      setError('Enter a valid selling price.');
+      setError(t('addProduct.needSellingPrice'));
       return;
     }
     if (!Number.isFinite(acquiredNum) || acquiredNum < 0) {
-      setError('Enter a valid acquired price.');
+      setError(t('addProduct.needAcquiredPrice'));
       return;
     }
     if (sellingNum < acquiredNum) {
-      setError('Selling price cannot be less than acquired price.');
+      setError(t('addProduct.priceError'));
       return;
     }
     if (!isMultiColor && (!Number.isInteger(quantityNum) || quantityNum < 0)) {
-      setError('Enter a valid quantity.');
+      setError(t('addProduct.needQty'));
       return;
     }
 
@@ -88,7 +90,7 @@ export default function AdminAddProduct() {
         .single();
 
       if (createError || !rpcData) {
-        throw new Error(createError?.message ?? 'Could not create product');
+        throw new Error(createError?.message ?? t('addProduct.couldNotCreate'));
       }
       const product = rpcData as AdminProduct;
 
@@ -112,10 +114,10 @@ export default function AdminAddProduct() {
         if (imageRowError) throw new Error(imageRowError.message);
       }
 
-      setSuccess(`Saved as ${product.product_code}.`);
+      setSuccess(t('addProduct.saved', { code: product.product_code }));
       resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : t('addProduct.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -123,18 +125,18 @@ export default function AdminAddProduct() {
 
   return (
     <div className="page admin-page">
-      <h1>Add Product</h1>
+      <h1>{t('addProduct.title')}</h1>
       <form className="product-form" onSubmit={handleSubmit}>
         <label>
-          Color Mode
+          {t('addProduct.colorMode')}
           <select value={colorMode} onChange={(e) => setColorMode(e.target.value as 'single' | 'multi-color')}>
-            <option value="single">Single product</option>
-            <option value="multi-color">Multi-color (each photo is a different color)</option>
+            <option value="single">{t('addProduct.single')}</option>
+            <option value="multi-color">{t('addProduct.multiColor')}</option>
           </select>
         </label>
 
         <label>
-          Photos
+          {t('addProduct.photos')}
           <ImageUploader
             entries={images}
             onChange={setImages}
@@ -144,17 +146,17 @@ export default function AdminAddProduct() {
         </label>
 
         <label>
-          Name
+          {t('addProduct.name')}
           <input value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
 
         <label>
-          Type
+          {t('addProduct.type')}
           <TypeSelect value={typeId} onChange={setTypeId} />
         </label>
 
         <label>
-          Selling Price (₹)
+          {t('addProduct.sellingPrice')}
           <input
             type="number"
             min="0"
@@ -167,7 +169,7 @@ export default function AdminAddProduct() {
         </label>
 
         <label>
-          Acquired Price (₹)
+          {t('addProduct.acquiredPrice')}
           <input
             type="number"
             min="0"
@@ -180,7 +182,7 @@ export default function AdminAddProduct() {
         </label>
 
         <label>
-          Quantity
+          {t('addProduct.quantity')}
           {colorMode === 'multi-color' ? (
             <input
               type="number"
@@ -199,7 +201,7 @@ export default function AdminAddProduct() {
               required
             />
           )}
-          {colorMode === 'multi-color' && <span className="hint-text">Sum of each color's quantity above.</span>}
+          {colorMode === 'multi-color' && <span className="hint-text">{t('addProduct.sumHint')}</span>}
         </label>
 
         {error && <p className="error-text">{error}</p>}
@@ -207,13 +209,13 @@ export default function AdminAddProduct() {
           <p className="success-text">
             {success}{' '}
             <button type="button" className="link-btn" onClick={() => navigate('/admin/products')}>
-              View products
+              {t('addProduct.viewProducts')}
             </button>
           </p>
         )}
 
         <button className="btn btn-primary btn-large" type="submit" disabled={submitting}>
-          {submitting ? 'Saving…' : 'Save Product'}
+          {submitting ? t('addProduct.saving') : t('addProduct.save')}
         </button>
       </form>
       <AdminNav />

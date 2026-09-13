@@ -3,12 +3,14 @@ import { supabase } from '../lib/supabaseClient';
 import type { ProductCategory, ProductType, PublicProduct } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { ProductViewer } from '../components/ProductViewer';
+import { useLanguage } from '../lib/i18n';
 
 // V1 keeps this un-paginated — fine for a small/medium manufacturer catalog.
 // If the list grows into the thousands, switch to keyset pagination here.
 const CATALOG_LIMIT = 500;
 
 export default function Catalog() {
+  const { t } = useLanguage();
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [types, setTypes] = useState<ProductType[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
@@ -60,14 +62,14 @@ export default function Catalog() {
           setThumbnails(map);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not reach the server. Check your connection.');
+        setError(err instanceof Error ? err.message : t('error.network'));
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, []);
+  }, [t]);
 
   const typeIdToCategoryId = useMemo(() => {
     const map: Record<string, string | null> = {};
@@ -89,11 +91,11 @@ export default function Catalog() {
   return (
     <div className="page">
       <header className="catalog-header">
-        <h1>Catalog</h1>
+        <h1>{t('catalog.title')}</h1>
         <input
           className="search-input"
           type="search"
-          placeholder="Search name or code…"
+          placeholder={t('catalog.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -103,7 +105,7 @@ export default function Catalog() {
               className={categoryFilter === 'all' ? 'chip chip-active' : 'chip'}
               onClick={() => setCategoryFilter('all')}
             >
-              All
+              {t('catalog.all')}
             </button>
             {categories.map((c) => (
               <button
@@ -118,10 +120,10 @@ export default function Catalog() {
         )}
       </header>
 
-      {loading && <p className="page-center">Loading catalog…</p>}
+      {loading && <p className="page-center">{t('catalog.loading')}</p>}
       {error && <p className="page-center error-text">{error}</p>}
       {!loading && !error && filtered.length === 0 && (
-        <p className="page-center">No products found.</p>
+        <p className="page-center">{t('catalog.noProducts')}</p>
       )}
 
       <div className="product-grid">

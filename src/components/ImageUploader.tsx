@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLanguage } from '../lib/i18n';
 
 export interface ImageEntry {
   file: File;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function ImageUploader({ entries, onChange, max = 10, showColorInput = false }: Props) {
+  const { t } = useLanguage();
   const [previews, setPreviews] = useState<string[]>([]);
 
   useEffect(() => {
@@ -48,7 +50,12 @@ export function ImageUploader({ entries, onChange, max = 10, showColorInput = fa
           <div className="image-preview-item" key={i}>
             <div className="image-preview">
               <img src={previews[i]} alt={`Photo ${i + 1}`} />
-              <button type="button" className="image-remove" onClick={() => removeAt(i)} aria-label="Remove photo">
+              <button
+                type="button"
+                className="image-remove"
+                onClick={() => removeAt(i)}
+                aria-label={t('uploader.removePhoto')}
+              >
                 ×
               </button>
             </div>
@@ -57,7 +64,7 @@ export function ImageUploader({ entries, onChange, max = 10, showColorInput = fa
                 <input
                   className="image-color-input"
                   type="text"
-                  placeholder="Color name"
+                  placeholder={t('uploader.colorName')}
                   value={entry.color}
                   onChange={(e) => setColorAt(i, e.target.value)}
                 />
@@ -66,7 +73,7 @@ export function ImageUploader({ entries, onChange, max = 10, showColorInput = fa
                   type="number"
                   min="0"
                   step="1"
-                  placeholder="Qty"
+                  placeholder={t('uploader.qty')}
                   value={entry.quantity}
                   onChange={(e) => setQuantityAt(i, e.target.value)}
                 />
@@ -77,13 +84,11 @@ export function ImageUploader({ entries, onChange, max = 10, showColorInput = fa
         {entries.length < max && (
           <label className="image-add-tile">
             <input type="file" accept="image/*" capture="environment" multiple onChange={handlePick} hidden />
-            + Photo
+            {t('uploader.addPhoto')}
           </label>
         )}
       </div>
-      <p className="hint-text">
-        {entries.length}/{max} photos
-      </p>
+      <p className="hint-text">{t('uploader.count', { n: entries.length, max })}</p>
     </div>
   );
 }

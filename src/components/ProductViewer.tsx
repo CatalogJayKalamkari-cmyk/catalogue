@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { PublicProduct } from '../types';
 import { supabase, productImageUrl } from '../lib/supabaseClient';
+import { useLanguage } from '../lib/i18n';
 
 interface Props {
   products: PublicProduct[];
@@ -11,6 +12,7 @@ interface Props {
 const SWIPE_THRESHOLD = 50;
 
 export function ProductViewer({ products, startIndex, onClose }: Props) {
+  const { t } = useLanguage();
   const [productIndex, setProductIndex] = useState(startIndex);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [, forceRender] = useState(0);
@@ -86,7 +88,7 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
 
   return (
     <div className="viewer-overlay" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
-      <button className="viewer-back" onClick={onClose} aria-label="Back to catalog">
+      <button className="viewer-back" onClick={onClose} aria-label={t('viewer.back')}>
         ←
       </button>
 
@@ -102,22 +104,26 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
         {currentPhoto ? (
           <img src={currentPhoto.url} alt={product.name} draggable={false} />
         ) : (
-          <div className="viewer-media-placeholder">No photo</div>
+          <div className="viewer-media-placeholder">{t('catalog.noPhoto')}</div>
         )}
         {product.is_multi_color && currentPhoto?.quantity === 0 && (
-          <span className="viewer-photo-sold-badge">Sold</span>
+          <span className="viewer-photo-sold-badge">{t('viewer.sold')}</span>
         )}
       </div>
 
       <div className="viewer-details">
-        {!product.in_stock && <span className="viewer-badge-out">Out of Stock</span>}
+        {!product.in_stock && <span className="viewer-badge-out">{t('catalog.outOfStock')}</span>}
         <span className="product-code">{product.product_code}</span>
         <span className="product-name">{product.name}</span>
-        {currentPhoto?.colorLabel && <span className="viewer-color-label">Color: {currentPhoto.colorLabel}</span>}
+        {currentPhoto?.colorLabel && (
+          <span className="viewer-color-label">
+            {t('viewer.color')}: {currentPhoto.colorLabel}
+          </span>
+        )}
         <div className="product-price-row">
           <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
           <span className="product-qty">
-            Qty: {product.is_multi_color ? (currentPhoto?.quantity ?? 0) : product.quantity}
+            {t('catalog.qty')}: {product.is_multi_color ? (currentPhoto?.quantity ?? 0) : product.quantity}
           </span>
         </div>
       </div>

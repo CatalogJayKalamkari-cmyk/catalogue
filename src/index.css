@@ -41,6 +41,22 @@ img {
   padding: 16px 16px 88px; /* bottom padding clears the fixed admin nav */
 }
 
+.language-toggle {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
+  z-index: 50;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--primary-dark);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .page-center {
   min-height: 100dvh;
   display: flex;

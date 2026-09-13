@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useLanguage } from '../lib/i18n';
 import type { ProductCategory, ProductType } from '../types';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function TypeSelect({ value, onChange }: Props) {
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [types, setTypes] = useState<ProductType[]>([]);
@@ -54,7 +56,7 @@ export function TypeSelect({ value, onChange }: Props) {
   async function handleCreateType() {
     setError(null);
     if (!newName.trim()) {
-      setError('Sub type name is required.');
+      setError(t('typeSelect.nameRequired'));
       return;
     }
     setSaving(true);
@@ -82,7 +84,7 @@ export function TypeSelect({ value, onChange }: Props) {
     <div className="type-select">
       <select value={categoryId} onChange={handleCategoryChange} required>
         <option value="" disabled>
-          Select category…
+          {t('typeSelect.selectCategory')}
         </option>
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
@@ -95,31 +97,31 @@ export function TypeSelect({ value, onChange }: Props) {
         (adding ? (
           <div className="inline-add-type">
             <label>
-              New sub type name
+              {t('typeSelect.newSubTypeName')}
               <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Kalamkari Cotton Sarees" />
             </label>
-            <p className="hint-text">Its product code is generated automatically.</p>
+            <p className="hint-text">{t('typeSelect.autoCode')}</p>
             {error && <p className="error-text">{error}</p>}
             <div className="inline-add-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setAdding(false)}>
-                Cancel
+                {t('typeSelect.cancel')}
               </button>
               <button type="button" className="btn btn-primary" disabled={saving} onClick={handleCreateType}>
-                {saving ? 'Saving…' : 'Add Sub Type'}
+                {saving ? t('typeSelect.saving') : t('typeSelect.addSubType')}
               </button>
             </div>
           </div>
         ) : (
           <select value={value} onChange={handleTypeChange} required>
             <option value="" disabled>
-              Select sub type…
+              {t('typeSelect.selectSubType')}
             </option>
-            {types.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
+            {types.map((pt) => (
+              <option key={pt.id} value={pt.id}>
+                {pt.name}
               </option>
             ))}
-            <option value="__new__">+ Add new sub type…</option>
+            <option value="__new__">{t('typeSelect.addNew')}</option>
           </select>
         ))}
     </div>

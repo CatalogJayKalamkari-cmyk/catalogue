@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase, productImageUrl, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import { processImageToWebp } from '../lib/imageProcessing';
+import { useLanguage } from '../lib/i18n';
 import type { ProductImage } from '../types';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 const MAX_PHOTOS = 10;
 
 export function AdminProductPhotos({ productId, productCode, isMultiColor, view }: Props) {
+  const { t } = useLanguage();
   const showSale = view === 'sale';
   const showAcquire = view === 'acquire';
   const showAddPhoto = view === 'acquire' || view === 'edit';
@@ -49,11 +51,11 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
   async function saveSale(img: ProductImage) {
     const qty = Number(saleQty[img.id]);
     if (!Number.isInteger(qty) || qty <= 0) {
-      setError('Enter a valid sale quantity.');
+      setError(t('photos.invalidSaleQty'));
       return;
     }
     if (qty > img.quantity) {
-      setError(`Only ${img.quantity} of this color in stock.`);
+      setError(t('photos.onlyColorInStock', { n: img.quantity }));
       return;
     }
     setError(null);
@@ -68,7 +70,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
   async function saveAcquire(img: ProductImage) {
     const qty = Number(acquireQty[img.id]);
     if (!Number.isInteger(qty) || qty <= 0) {
-      setError('Enter a valid acquired quantity.');
+      setError(t('photos.invalidAcquireQty'));
       return;
     }
     setError(null);
@@ -89,7 +91,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
   async function confirmAddPhoto() {
     if (!pendingFile) return;
     if (isMultiColor && (!Number.isInteger(Number(pendingQty)) || Number(pendingQty) < 0)) {
-      setError('Enter a valid quantity for this color.');
+      setError(t('photos.invalidColorQty'));
       return;
     }
     setError(null);
@@ -119,13 +121,13 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
       setPendingQty('1');
       load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not add photo.');
+      setError(err instanceof Error ? err.message : t('photos.couldNotAdd'));
     } finally {
       setUploading(false);
     }
   }
 
-  if (loading) return <p className="hint-text">Loading photos…</p>;
+  if (loading) return <p className="hint-text">{t('photos.loading')}</p>;
 
   return (
     <div className="admin-photo-list">
@@ -134,18 +136,18 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
         <div key={img.id} className="admin-photo-item">
           <div className="admin-photo-thumb">
             <img src={productImageUrl(img.storage_path)} alt="" />
-            {isMultiColor && img.quantity === 0 && <span className="badge badge-out">Sold</span>}
+            {isMultiColor && img.quantity === 0 && <span className="badge badge-out">{t('photos.sold')}</span>}
           </div>
           {img.color_label && <span className="hint-text">{img.color_label}</span>}
           {isMultiColor && (
             <span className="hint-text">
-              Initial: {img.initial_quantity} · Current: {img.quantity}
+              {t('photos.initial')}: {img.initial_quantity} · {t('photos.current')}: {img.quantity}
             </span>
           )}
 
           {isMultiColor && showSale && (
             <>
-              <span className="hint-text">Sale</span>
+              <span className="hint-text">{t('photos.sale')}</span>
               <div className="row-inline">
                 <input
                   type="number"
@@ -154,7 +156,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
                   onChange={(e) => setSaleQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
                 />
                 <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => saveSale(img)}>
-                  Save
+                  {t('photos.save')}
                 </button>
               </div>
             </>
@@ -162,7 +164,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
 
           {isMultiColor && showAcquire && (
             <>
-              <span className="hint-text">Acquired</span>
+              <span className="hint-text">{t('photos.acquired')}</span>
               <div className="row-inline">
                 <input
                   type="number"
@@ -171,7 +173,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
                   onChange={(e) => setAcquireQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
                 />
                 <button className="btn btn-secondary" onClick={() => saveAcquire(img)}>
-                  Save
+                  {t('photos.save')}
                 </button>
               </div>
             </>
@@ -179,12 +181,12 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
         </div>
       ))}
 
-      {images.length === 0 && <p className="hint-text">No photos on this product.</p>}
+      {images.length === 0 && <p className="hint-text">{t('photos.none')}</p>}
 
       {showAddPhoto && images.length < MAX_PHOTOS && !pendingFile && (
         <label className="image-add-tile">
           <input type="file" accept="image/*" capture="environment" onChange={handlePick} hidden />
-          + Photo
+          {t('photos.addPhoto')}
         </label>
       )}
 
@@ -196,7 +198,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
           <input
             className="image-color-input"
             type="text"
-            placeholder="Color name (optional)"
+            placeholder={t('photos.colorNameOptional')}
             value={pendingColor}
             onChange={(e) => setPendingColor(e.target.value)}
           />
@@ -206,17 +208,17 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
               type="number"
               min="0"
               step="1"
-              placeholder="Qty"
+              placeholder={t('photos.qty')}
               value={pendingQty}
               onChange={(e) => setPendingQty(e.target.value)}
             />
           )}
           <div className="row-inline">
             <button className="btn btn-primary" disabled={uploading} onClick={confirmAddPhoto}>
-              {uploading ? 'Adding…' : 'Add'}
+              {uploading ? t('photos.adding') : t('photos.add')}
             </button>
             <button className="btn btn-secondary" onClick={() => setPendingFile(null)}>
-              Cancel
+              {t('photos.cancel')}
             </button>
           </div>
         </div>
