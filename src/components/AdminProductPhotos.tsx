@@ -35,7 +35,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
     if (error) setError(error.message);
     setImages(data ?? []);
     const defaults: Record<string, string> = {};
-    for (const img of data ?? []) defaults[img.id] = '1';
+    for (const img of data ?? []) defaults[img.id] = '0';
     setSaleQty(defaults);
     setAcquireQty(defaults);
     setLoading(false);
@@ -148,8 +148,8 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
               <div className="row-inline">
                 <input
                   type="number"
-                  min="1"
-                  value={saleQty[img.id] ?? '1'}
+                  min="0"
+                  value={saleQty[img.id] ?? '0'}
                   onChange={(e) => setSaleQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
                 />
                 <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => saveSale(img)}>
@@ -165,8 +165,8 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
               <div className="row-inline">
                 <input
                   type="number"
-                  min="1"
-                  value={acquireQty[img.id] ?? '1'}
+                  min="0"
+                  value={acquireQty[img.id] ?? '0'}
                   onChange={(e) => setAcquireQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
                 />
                 <button className="btn btn-secondary" onClick={() => saveAcquire(img)}>
