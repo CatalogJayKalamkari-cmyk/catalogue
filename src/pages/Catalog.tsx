@@ -30,7 +30,7 @@ export default function Catalog() {
             .select('*')
             .order('created_at', { ascending: false })
             .limit(CATALOG_LIMIT),
-          supabase.from('product_types').select('id, name, prefix'),
+          supabase.from('product_types').select('id, name, prefix, category_id'),
         ]);
 
         if (productsRes.error) {

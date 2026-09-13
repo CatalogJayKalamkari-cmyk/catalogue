@@ -499,6 +499,12 @@ select {
 
 /* Inline add-type */
 
+.type-select {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .inline-add-type {
   display: flex;
   flex-direction: column;

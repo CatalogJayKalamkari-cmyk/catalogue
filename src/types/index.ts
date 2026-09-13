@@ -1,7 +1,14 @@
+export interface ProductCategory {
+  id: string;
+  name: string;
+  sort_order: number;
+}
+
 export interface ProductType {
   id: string;
   name: string;
   prefix: string;
+  category_id: string | null;
 }
 
 export interface PublicProduct {
