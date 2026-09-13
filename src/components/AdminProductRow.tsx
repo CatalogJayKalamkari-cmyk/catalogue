@@ -200,13 +200,13 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         )}
 
         {mode === 'view' && product.is_multi_color && (
-          <p className="hint-text">Stock is managed per color under Photos.</p>
+          <p className="hint-text">Stock is managed per color under Colors &amp; Sale.</p>
         )}
 
         {mode === 'view' && (
           <div className="row-actions">
             <button className="btn btn-secondary" onClick={() => setMode('edit')}>
-              Edit
+              Edit Price
             </button>
             {!product.is_multi_color && (
               <>
@@ -223,7 +223,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
               </>
             )}
             <button className="btn btn-secondary" onClick={() => setMode('photos')}>
-              Photos
+              {product.is_multi_color ? 'Colors & Sale' : 'Photos'}
             </button>
             <button className="btn btn-secondary" disabled={saving} onClick={toggleArchive}>
               {product.is_active ? 'Archive' : 'Unarchive'}
