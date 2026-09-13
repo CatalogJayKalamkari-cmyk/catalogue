@@ -3,6 +3,7 @@ import { supabase, productImageUrl } from '../lib/supabaseClient';
 import type { AdminProduct } from '../types';
 import { AdminProductPhotos } from './AdminProductPhotos';
 import { useLanguage } from '../lib/i18n';
+import type { PrintType } from '../types';
 
 interface Props {
   product: AdminProduct;
@@ -16,6 +17,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     'view'
   );
   const [name, setName] = useState(product.name);
+  const [printType, setPrintType] = useState<PrintType>(product.print_type ?? 'screen');
   const [priceSelling, setPriceSelling] = useState(String(product.price_selling));
   const [priceAcquired, setPriceAcquired] = useState(String(product.price_acquired));
   const [sellQty, setSellQty] = useState('1');
@@ -38,7 +40,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     setSaving(true);
     const { error } = await supabase
       .from('products')
-      .update({ name: name.trim(), price_selling: sellingNum, price_acquired: acquiredNum })
+      .update({ name: name.trim(), price_selling: sellingNum, price_acquired: acquiredNum, print_type: printType })
       .eq('id', product.id);
     setSaving(false);
     if (error) {
@@ -126,6 +128,22 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
           <>
             <input value={name} onChange={(e) => setName(e.target.value)} />
             <div className="row-inline">
+              <button
+                type="button"
+                className={printType === 'screen' ? 'btn btn-primary' : 'btn btn-secondary'}
+                onClick={() => setPrintType('screen')}
+              >
+                {t('addProduct.screenPrinted')}
+              </button>
+              <button
+                type="button"
+                className={printType === 'block' ? 'btn btn-primary' : 'btn btn-secondary'}
+                onClick={() => setPrintType('block')}
+              >
+                {t('addProduct.blockPrinted')}
+              </button>
+            </div>
+            <div className="row-inline">
               <input
                 type="number"
                 min="0"
@@ -153,6 +171,11 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         ) : (
           <>
             <span className="product-name">{product.name}</span>
+            {product.print_type && (
+              <span className="hint-text">
+                {product.print_type === 'screen' ? t('addProduct.screenPrinted') : t('addProduct.blockPrinted')}
+              </span>
+            )}
             <span className="hint-text">
               {t('row.sellLabel')} ₹{product.price_selling.toLocaleString('en-IN')} · {t('row.costLabel')} ₹
               {product.price_acquired.toLocaleString('en-IN')}

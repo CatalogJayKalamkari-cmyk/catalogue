@@ -6,12 +6,13 @@ import { AdminNav } from '../components/AdminNav';
 import { ImageUploader, type ImageEntry } from '../components/ImageUploader';
 import { TypeSelect } from '../components/TypeSelect';
 import { useLanguage } from '../lib/i18n';
-import type { AdminProduct } from '../types';
+import type { AdminProduct, PrintType } from '../types';
 
 export default function AdminAddProduct() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [name, setName] = useState('');
+  const [printType, setPrintType] = useState<PrintType>('screen');
   const [typeId, setTypeId] = useState('');
   const [priceSelling, setPriceSelling] = useState('');
   const [priceAcquired, setPriceAcquired] = useState('');
@@ -24,6 +25,7 @@ export default function AdminAddProduct() {
 
   function resetForm() {
     setName('');
+    setPrintType('screen');
     setTypeId('');
     setPriceSelling('');
     setPriceAcquired('');
@@ -86,6 +88,7 @@ export default function AdminAddProduct() {
           p_price_acquired: acquiredNum,
           p_quantity: quantityNum,
           p_is_multi_color: isMultiColor,
+          p_print_type: printType,
         })
         .single();
 
@@ -148,6 +151,26 @@ export default function AdminAddProduct() {
         <label>
           {t('addProduct.name')}
           <input value={name} onChange={(e) => setName(e.target.value)} required />
+        </label>
+
+        <label>
+          {t('addProduct.printType')}
+          <div className="row-inline">
+            <button
+              type="button"
+              className={printType === 'screen' ? 'btn btn-primary' : 'btn btn-secondary'}
+              onClick={() => setPrintType('screen')}
+            >
+              {t('addProduct.screenPrinted')}
+            </button>
+            <button
+              type="button"
+              className={printType === 'block' ? 'btn btn-primary' : 'btn btn-secondary'}
+              onClick={() => setPrintType('block')}
+            >
+              {t('addProduct.blockPrinted')}
+            </button>
+          </div>
         </label>
 
         <label>

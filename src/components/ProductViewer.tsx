@@ -115,6 +115,11 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
         {!product.in_stock && <span className="viewer-badge-out">{t('catalog.outOfStock')}</span>}
         <span className="product-code">{product.product_code}</span>
         <span className="product-name">{product.name}</span>
+        {product.print_type && (
+          <span className="viewer-color-label">
+            {product.print_type === 'screen' ? t('addProduct.screenPrinted') : t('addProduct.blockPrinted')}
+          </span>
+        )}
         {currentPhoto?.colorLabel && (
           <span className="viewer-color-label">
             {t('viewer.color')}: {currentPhoto.colorLabel}
