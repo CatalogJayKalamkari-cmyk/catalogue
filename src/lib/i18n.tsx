@@ -259,6 +259,186 @@ const translations = {
 
 export type TranslationKey = keyof typeof translations.en;
 
+// The 159 seeded sub-types are also database rows. Falls back to the
+// original name for anything not in this list (a custom sub-type the
+// admin added via "+ Add new sub type").
+const typeTranslationsTe: Record<string, string> = {
+  'Kalamkari Cotton Sarees': 'కలంకారి కాటన్ చీరలు',
+  'Kalamkari Silk Sarees': 'కలంకారి సిల్క్ చీరలు',
+  'Kalamkari Cotton-Silk Sarees': 'కలంకారి కాటన్-సిల్క్ చీరలు',
+  'Kalamkari Kota Sarees': 'కలంకారి కోటా చీరలు',
+  'Kalamkari Khadi Sarees': 'కలంకారి ఖాదీ చీరలు',
+  'Kalamkari Rayon Sarees': 'కలంకారి రేయాన్ చీరలు',
+  'Kalamkari Linen Sarees': 'కలంకారి లినెన్ చీరలు',
+  'Kalamkari Hand-Painted Sarees': 'కలంకారి హ్యాండ్ పెయింటెడ్ చీరలు',
+  'Kalamkari Hand-Block Printed Sarees': 'కలంకారి హ్యాండ్ బ్లాక్ ప్రింటెడ్ చీరలు',
+  'Kalamkari Printed Sarees': 'కలంకారి ప్రింటెడ్ చీరలు',
+  'Kalamkari Designer Sarees': 'కలంకారి డిజైనర్ చీరలు',
+  'Kalamkari Casual Sarees': 'కలంకారి కేజువల్ చీరలు',
+  'Kalamkari Bridal / Festive Sarees': 'కలంకారి పెళ్లి / పండుగ చీరలు',
+  'Kalamkari Running Border Sarees': 'కలంకారి రన్నింగ్ బోర్డర్ చీరలు',
+  'Kalamkari Zari Border Sarees': 'కలంకారి జరీ బోర్డర్ చీరలు',
+
+  'Kalamkari 3-Piece Dress Material': 'కలంకారి 3-పీస్ డ్రెస్ మెటీరియల్',
+  'Kalamkari 2-Piece Dress Material': 'కలంకారి 2-పీస్ డ్రెస్ మెటీరియల్',
+  'Kalamkari Cotton Dress Material': 'కలంకారి కాటన్ డ్రెస్ మెటీరియల్',
+  'Kalamkari Silk Dress Material': 'కలంకారి సిల్క్ డ్రెస్ మెటీరియల్',
+  'Kalamkari Printed Dress Material': 'కలంకారి ప్రింటెడ్ డ్రెస్ మెటీరియల్',
+  'Kalamkari Hand-Painted Dress Material': 'కలంకారి హ్యాండ్ పెయింటెడ్ డ్రెస్ మెటీరియల్',
+  'Kalamkari Suit Material': 'కలంకారి సూట్ మెటీరియల్',
+  'Kalamkari Unstitched Dress Material': 'కలంకారి అన్‌స్టిచ్డ్ డ్రెస్ మెటీరియల్',
+  'Kalamkari Salwar Suit Material': 'కలంకారి సల్వార్ సూట్ మెటీరియల్',
+
+  'Kalamkari Dupattas': 'కలంకారి దుపట్టాలు',
+  'Kalamkari Cotton Dupattas': 'కలంకారి కాటన్ దుపట్టాలు',
+  'Kalamkari Silk Dupattas': 'కలంకారి సిల్క్ దుపట్టాలు',
+  'Kalamkari Chunni': 'కలంకారి చున్నీ',
+  'Kalamkari Stoles': 'కలంకారి స్టోల్స్',
+  'Kalamkari Scarves': 'కలంకారి స్కార్ఫ్‌లు',
+  'Kalamkari Hand-Painted Dupattas': 'కలంకారి హ్యాండ్ పెయింటెడ్ దుపట్టాలు',
+  'Kalamkari Block-Printed Dupattas': 'కలంకారి బ్లాక్-ప్రింటెడ్ దుపట్టాలు',
+
+  'Kalamkari Blouse Pieces': 'కలంకారి బ్లౌజ్ పీసెస్',
+  'Kalamkari Ready-Made Blouses': 'కలంకారి రెడీమేడ్ బ్లౌజ్‌లు',
+  'Kalamkari Blouse Fabric': 'కలంకారి బ్లౌజ్ ఫాబ్రిక్',
+  'Kalamkari Designer Blouses': 'కలంకారి డిజైనర్ బ్లౌజ్‌లు',
+  'Kalamkari Saree Blouse Material': 'కలంకారి చీర బ్లౌజ్ మెటీరియల్',
+  'Kalamkari Contrast Blouse Pieces': 'కలంకారి కాంట్రాస్ట్ బ్లౌజ్ పీసెస్',
+
+  'Kalamkari Kurtis': 'కలంకారి కుర్తీలు',
+  'Kalamkari Kurta': 'కలంకారి కుర్తా',
+  'Kalamkari Tops': 'కలంకారి టాప్స్',
+  'Kalamkari Dresses': 'కలంకారి డ్రెస్‌లు',
+  'Kalamkari Frocks': 'కలంకారి ఫ్రాక్‌లు',
+  'Kalamkari Maxi Dresses': 'కలంకారి మాక్సీ డ్రెస్‌లు',
+  'Kalamkari Kaftans': 'కలంకారి కాఫ్తాన్‌లు',
+  'Kalamkari Skirts': 'కలంకారి స్కర్టులు',
+  'Kalamkari Palazzos': 'కలంకారి పలాజోలు',
+  'Kalamkari Pants': 'కలంకారి ప్యాంట్లు',
+  'Kalamkari Leggings': 'కలంకారి లెగ్గింగ్స్',
+  'Kalamkari Co-Ord Sets': 'కలంకారి కో-ఆర్డ్ సెట్లు',
+  'Kalamkari Tunics': 'కలంకారి ట్యూనిక్‌లు',
+  'Kalamkari Nighties': 'కలంకారి నైటీలు',
+  'Kalamkari Nightwear': 'కలంకారి నైట్‌వేర్',
+
+  "Kalamkari Men's Kurtas": 'కలంకారి పురుషుల కుర్తాలు',
+  'Kalamkari Shirts': 'కలంకారి షర్టులు',
+  'Kalamkari T-Shirts': 'కలంకారి టీ-షర్టులు',
+  'Kalamkari Short Kurtas': 'కలంకారి షార్ట్ కుర్తాలు',
+  "Kalamkari Men's Pants": 'కలంకారి పురుషుల ప్యాంట్లు',
+  'Kalamkari Shorts': 'కలంకారి షార్ట్స్',
+  'Kalamkari Dhoti': 'కలంకారి ధోతి',
+  'Kalamkari Lungi': 'కలంకారి లుంగీ',
+  'Kalamkari Angavastram': 'కలంకారి అంగవస్త్రం',
+
+  'Kalamkari Hand Bags': 'కలంకారి హ్యాండ్ బ్యాగ్‌లు',
+  'Kalamkari Hand Purses': 'కలంకారి హ్యాండ్ పర్సులు',
+  'Kalamkari Sling Bags': 'కలంకారి స్లింగ్ బ్యాగ్‌లు',
+  'Kalamkari Shoulder Bags': 'కలంకారి షోల్డర్ బ్యాగ్‌లు',
+  'Kalamkari Tote Bags': 'కలంకారి టోట్ బ్యాగ్‌లు',
+  'Kalamkari Shopping Bags': 'కలంకారి షాపింగ్ బ్యాగ్‌లు',
+  'Kalamkari Potli Bags': 'కలంకారి పొట్లి బ్యాగ్‌లు',
+  'Kalamkari Clutch Bags': 'కలంకారి క్లచ్ బ్యాగ్‌లు',
+  'Kalamkari Pouches': 'కలంకారి పౌచ్‌లు',
+  'Kalamkari Coin Pouches': 'కలంకారి కాయిన్ పౌచ్‌లు',
+  'Kalamkari Makeup Pouches': 'కలంకారి మేకప్ పౌచ్‌లు',
+  'Kalamkari Mobile Pouches': 'కలంకారి మొబైల్ పౌచ్‌లు',
+  'Kalamkari Laptop Bags': 'కలంకారి ల్యాప్‌టాప్ బ్యాగ్‌లు',
+  'Kalamkari Travel Bags': 'కలంకారి ట్రావెల్ బ్యాగ్‌లు',
+
+  'Kalamkari Wall Art': 'కలంకారి వాల్ ఆర్ట్',
+  'Kalamkari Wall Hangings': 'కలంకారి వాల్ హ్యాంగింగ్స్',
+  'Kalamkari Wall Panels': 'కలంకారి వాల్ ప్యానెల్స్',
+  'Kalamkari Paintings': 'కలంకారి పెయింటింగ్‌లు',
+  'Kalamkari Canvas Art': 'కలంకారి కాన్వాస్ ఆర్ట్',
+  'Kalamkari Temple Wall Hangings': 'కలంకారి ఆలయ వాల్ హ్యాంగింగ్స్',
+  'Kalamkari God & Goddess Paintings': 'కలంకారి దేవుడు & దేవత పెయింటింగ్‌లు',
+  'Kalamkari Scroll Paintings': 'కలంకారి స్క్రోల్ పెయింటింగ్‌లు',
+  'Kalamkari Door Hangings': 'కలంకారి డోర్ హ్యాంగింగ్స్',
+  'Kalamkari Toranas': 'కలంకారి తోరణాలు',
+  'Kalamkari Photo Frames': 'కలంకారి ఫోటో ఫ్రేమ్‌లు',
+  'Kalamkari Decorative Panels': 'కలంకారి అలంకరణ ప్యానెల్స్',
+
+  'Kalamkari Bed Sheets': 'కలంకారి బెడ్ షీట్లు',
+  'Kalamkari Bed Covers': 'కలంకారి బెడ్ కవర్లు',
+  'Kalamkari Bedspreads': 'కలంకారి బెడ్‌స్ప్రెడ్‌లు',
+  'Kalamkari Pillow Covers': 'కలంకారి పిల్లో కవర్లు',
+  'Kalamkari Cushion Covers': 'కలంకారి కుషన్ కవర్లు',
+  'Kalamkari Table Covers': 'కలంకారి టేబుల్ కవర్లు',
+  'Kalamkari Table Runners': 'కలంకారి టేబుల్ రన్నర్లు',
+  'Kalamkari Table Mats': 'కలంకారి టేబుల్ మ్యాట్లు',
+  'Kalamkari Dining Mats': 'కలంకారి డైనింగ్ మ్యాట్లు',
+  'Kalamkari Curtains': 'కలంకారి కర్టెన్లు',
+  'Kalamkari Door Curtains': 'కలంకారి డోర్ కర్టెన్లు',
+  'Kalamkari Sofa Covers': 'కలంకారి సోఫా కవర్లు',
+  'Kalamkari Quilts': 'కలంకారి క్విల్ట్‌లు',
+  'Kalamkari Prayer Mats': 'కలంకారి ప్రార్థన మ్యాట్లు',
+
+  'Kalamkari Kitchen Towels': 'కలంకారి కిచెన్ టవల్స్',
+  'Kalamkari Tea Towels': 'కలంకారి టీ టవల్స్',
+  'Kalamkari Napkins': 'కలంకారి న్యాప్‌కిన్‌లు',
+  'Kalamkari Aprons': 'కలంకారి ఆప్రాన్లు',
+  'Kalamkari Pot Holders': 'కలంకారి పాట్ హోల్డర్లు',
+  'Kalamkari Kitchen Pouches': 'కలంకారి కిచెన్ పౌచ్‌లు',
+
+  'Kalamkari Handkerchiefs': 'కలంకారి రుమాళ్లు',
+  'Kalamkari Face Towels': 'కలంకారి ఫేస్ టవల్స్',
+  'Kalamkari Hand Towels': 'కలంకారి హ్యాండ్ టవల్స్',
+  'Kalamkari Bath Towels': 'కలంకారి బాత్ టవల్స్',
+  'Kalamkari Small Towels': 'కలంకారి చిన్న టవల్స్',
+  'Kalamkari Bandanas': 'కలంకారి బాండనాలు',
+  'Kalamkari Headbands': 'కలంకారి హెడ్‌బ్యాండ్‌లు',
+  'Kalamkari Hair Accessories': 'కలంకారి హెయిర్ యాక్సెసరీలు',
+  'Kalamkari Utility Pouches': 'కలంకారి యుటిలిటీ పౌచ్‌లు',
+
+  'Kalamkari Kids Frocks': 'కలంకారి పిల్లల ఫ్రాక్‌లు',
+  'Kalamkari Kids Kurtas': 'కలంకారి పిల్లల కుర్తాలు',
+  'Kalamkari Kids Dresses': 'కలంకారి పిల్లల డ్రెస్‌లు',
+  'Kalamkari Kids Tops': 'కలంకారి పిల్లల టాప్స్',
+  'Kalamkari Kids Shirts': 'కలంకారి పిల్లల షర్టులు',
+  'Kalamkari Kids Shorts': 'కలంకారి పిల్లల షార్ట్స్',
+  'Kalamkari Kids Skirts': 'కలంకారి పిల్లల స్కర్టులు',
+  'Kalamkari Baby Dresses': 'కలంకారి బేబీ డ్రెస్‌లు',
+  'Kalamkari Baby Frocks': 'కలంకారి బేబీ ఫ్రాక్‌లు',
+  'Kalamkari Kids Nightwear': 'కలంకారి పిల్లల నైట్‌వేర్',
+  'Kalamkari Kids Co-Ord Sets': 'కలంకారి పిల్లల కో-ఆర్డ్ సెట్లు',
+
+  'Kalamkari Wallets': 'కలంకారి వాలెట్లు',
+  'Kalamkari Coin Purses': 'కలంకారి కాయిన్ పర్సులు',
+  'Kalamkari Jewelry Pouches': 'కలంకారి నగల పౌచ్‌లు',
+  'Kalamkari Bangles': 'కలంకారి గాజులు',
+  'Kalamkari Fabric Accessories': 'కలంకారి ఫాబ్రిక్ యాక్సెసరీలు',
+
+  'Kalamkari Notebooks': 'కలంకారి నోట్‌బుక్‌లు',
+  'Kalamkari Diary Covers': 'కలంకారి డైరీ కవర్లు',
+  'Kalamkari File Covers': 'కలంకారి ఫైల్ కవర్లు',
+  'Kalamkari Document Folders': 'కలంకారి డాక్యుమెంట్ ఫోల్డర్లు',
+  'Kalamkari Pen Pouches': 'కలంకారి పెన్ పౌచ్‌లు',
+  'Kalamkari Book Covers': 'కలంకారి బుక్ కవర్లు',
+  'Kalamkari Gift Bags': 'కలంకారి గిఫ్ట్ బ్యాగ్‌లు',
+  'Kalamkari Gift Boxes': 'కలంకారి గిఫ్ట్ బాక్స్‌లు',
+  'Kalamkari Greeting Cards': 'కలంకారి గ్రీటింగ్ కార్డులు',
+
+  'Kalamkari Pooja Cloth': 'కలంకారి పూజ వస్త్రం',
+  'Kalamkari Mandir Backdrops': 'కలంకారి మందిర్ బ్యాక్‌డ్రాప్‌లు',
+  'Kalamkari Canopies': 'కలంకారి కానోపీలు',
+  'Kalamkari Festival Decor': 'కలంకారి పండుగ అలంకరణ',
+  'Kalamkari Wedding Decor': 'కలంకారి వివాహ అలంకరణ',
+  'Kalamkari Return Gift Bags': 'కలంకారి రిటర్న్ గిఫ్ట్ బ్యాగ్‌లు',
+
+  'Kalamkari Cotton Fabric': 'కలంకారి కాటన్ ఫాబ్రిక్',
+  'Kalamkari Silk Fabric': 'కలంకారి సిల్క్ ఫాబ్రిక్',
+  'Kalamkari Rayon Fabric': 'కలంకారి రేయాన్ ఫాబ్రిక్',
+  'Kalamkari Linen Fabric': 'కలంకారి లినెన్ ఫాబ్రిక్',
+  'Kalamkari Hand-Block Fabric': 'కలంకారి హ్యాండ్ బ్లాక్ ఫాబ్రిక్',
+  'Kalamkari Hand-Painted Fabric': 'కలంకారి హ్యాండ్ పెయింటెడ్ ఫాబ్రిక్',
+  'Pen Kalamkari Fabric': 'పెన్ కలంకారి ఫాబ్రిక్',
+  'Kalamkari Printed Fabric': 'కలంకారి ప్రింటెడ్ ఫాబ్రిక్',
+  'Kalamkari Running Fabric': 'కలంకారి రన్నింగ్ ఫాబ్రిక్',
+  'Kalamkari Curtain Fabric': 'కలంకారి కర్టెన్ ఫాబ్రిక్',
+  'Kalamkari Upholstery Fabric': 'కలంకారి అప్హోల్‌స్టరీ ఫాబ్రిక్',
+};
+
 // The 16 fixed product categories are database rows (not static UI copy),
 // so they need their own lookup rather than the translations dictionary
 // above. Falls back to the original name for anything not in this list
@@ -287,6 +467,7 @@ interface LanguageContextValue {
   toggleLang: () => void;
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   tc: (categoryName: string) => string;
+  tt: (typeName: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -326,7 +507,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return categoryTranslationsTe[categoryName] ?? categoryName;
   }
 
-  return <LanguageContext.Provider value={{ lang, toggleLang, t, tc }}>{children}</LanguageContext.Provider>;
+  function tt(typeName: string): string {
+    if (lang !== 'te') return typeName;
+    return typeTranslationsTe[typeName] ?? typeName;
+  }
+
+  return <LanguageContext.Provider value={{ lang, toggleLang, t, tc, tt }}>{children}</LanguageContext.Provider>;
 }
 
 export function useLanguage() {
