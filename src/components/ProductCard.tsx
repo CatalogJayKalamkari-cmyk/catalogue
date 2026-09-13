@@ -4,11 +4,20 @@ import { productImageUrl } from '../lib/supabaseClient';
 interface Props {
   product: PublicProduct;
   imagePath: string | null;
+  onClick?: () => void;
 }
 
-export function ProductCard({ product, imagePath }: Props) {
+export function ProductCard({ product, imagePath, onClick }: Props) {
   return (
-    <div className={`product-card${product.in_stock ? '' : ' out-of-stock'}`}>
+    <div
+      className={`product-card${product.in_stock ? '' : ' out-of-stock'}`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onClick?.();
+      }}
+    >
       <div className="product-card-image">
         {imagePath ? (
           <img src={productImageUrl(imagePath)} alt={product.name} loading="lazy" />

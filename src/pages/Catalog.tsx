@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { ProductType, PublicProduct } from '../types';
 import { ProductCard } from '../components/ProductCard';
+import { ProductViewer } from '../components/ProductViewer';
 
 // V1 keeps this un-paginated — fine for a small/medium manufacturer catalog.
 // If the list grows into the thousands, switch to keyset pagination here.
@@ -15,6 +16,7 @@ export default function Catalog() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -114,10 +116,19 @@ export default function Catalog() {
       )}
 
       <div className="product-grid">
-        {filtered.map((p) => (
-          <ProductCard key={p.id} product={p} imagePath={thumbnails[p.id] ?? null} />
+        {filtered.map((p, idx) => (
+          <ProductCard
+            key={p.id}
+            product={p}
+            imagePath={thumbnails[p.id] ?? null}
+            onClick={() => setViewerIndex(idx)}
+          />
         ))}
       </div>
+
+      {viewerIndex !== null && (
+        <ProductViewer products={filtered} startIndex={viewerIndex} onClose={() => setViewerIndex(null)} />
+      )}
     </div>
   );
 }
