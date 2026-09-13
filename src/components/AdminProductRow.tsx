@@ -189,7 +189,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
               onChange={(e) => setRestockQty(e.target.value)}
             />
             <button className="btn btn-primary" disabled={saving} onClick={confirmRestock}>
-              Confirm Restock
+              Confirm Acquired
             </button>
             <button className="btn btn-secondary" onClick={() => setMode('view')}>
               Cancel
@@ -233,10 +233,10 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
                   disabled={product.quantity === 0}
                   onClick={() => setMode('sell')}
                 >
-                  Record Sale
+                  Sale
                 </button>
                 <button className="btn btn-secondary" onClick={() => setMode('restock')}>
-                  Restock
+                  Acquired
                 </button>
               </>
             )}
