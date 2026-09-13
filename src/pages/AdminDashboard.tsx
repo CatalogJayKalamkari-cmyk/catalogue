@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import { AdminNav } from '../components/AdminNav';
 import { StatCard } from '../components/StatCard';
 
@@ -9,12 +9,34 @@ interface Stats {
   revenueGenerated: number;
   addedToday: number;
   soldToday: number;
+  storageUsedBytes: number;
 }
+
+const FREE_TIER_STORAGE_BYTES = 1024 * 1024 * 1024; // Supabase free tier: 1 GB
 
 function startOfToday(): string {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d.toISOString();
+}
+
+function formatStorage(bytes: number): string {
+  const pct = ((bytes / FREE_TIER_STORAGE_BYTES) * 100).toFixed(2);
+  return `${pct}%`;
+}
+
+async function getStorageUsedBytes(): Promise<number> {
+  const { data: images } = await supabase.from('product_images').select('storage_path');
+  const folders = [...new Set((images ?? []).map((img) => img.storage_path.split('/')[0]))];
+
+  const listings = await Promise.all(
+    folders.map((folder) => supabase.storage.from(PRODUCT_IMAGES_BUCKET).list(folder))
+  );
+
+  return listings.reduce(
+    (total, { data: files }) => total + (files ?? []).reduce((sum, f) => sum + (f.metadata?.size ?? 0), 0),
+    0
+  );
 }
 
 export default function AdminDashboard() {
@@ -27,13 +49,14 @@ export default function AdminDashboard() {
       try {
         const todayStart = startOfToday();
 
-        const [productsRes, salesRes, salesTodayRes] = await Promise.all([
+        const [productsRes, salesRes, salesTodayRes, storageUsedBytes] = await Promise.all([
           supabase.from('products').select('id, quantity, created_at').eq('is_active', true),
           supabase.from('stock_transactions').select('revenue'),
           supabase
             .from('stock_transactions')
             .select('quantity_sold')
             .gte('created_at', todayStart),
+          getStorageUsedBytes(),
         ]);
 
         if (productsRes.error || salesRes.error || salesTodayRes.error) {
@@ -58,6 +81,7 @@ export default function AdminDashboard() {
           revenueGenerated,
           addedToday,
           soldToday,
+          storageUsedBytes,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not reach the server. Check your connection.');
@@ -82,6 +106,7 @@ export default function AdminDashboard() {
           />
           <StatCard label="Added Today" value={stats.addedToday.toString()} />
           <StatCard label="Sold Today" value={stats.soldToday.toString()} />
+          <StatCard label="Storage Used" value={formatStorage(stats.storageUsedBytes)} />
         </div>
       )}
       <AdminNav />
