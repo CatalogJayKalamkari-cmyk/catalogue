@@ -521,6 +521,10 @@ select {
   margin: 4px 0;
 }
 
+.admin-photo-list > .error-text {
+  grid-column: 1 / -1;
+}
+
 .admin-photo-item {
   display: flex;
   flex-direction: column;
