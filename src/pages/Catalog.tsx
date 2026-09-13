@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import type { ProductType, PublicProduct } from '../types';
+import type { ProductCategory, ProductType, PublicProduct } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { ProductViewer } from '../components/ProductViewer';
 
@@ -11,8 +11,9 @@ const CATALOG_LIMIT = 500;
 export default function Catalog() {
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [types, setTypes] = useState<ProductType[]>([]);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
-  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,13 +25,14 @@ export default function Catalog() {
       setError(null);
 
       try {
-        const [productsRes, typesRes] = await Promise.all([
+        const [productsRes, typesRes, categoriesRes] = await Promise.all([
           supabase
             .from('products_public')
             .select('*')
             .order('created_at', { ascending: false })
             .limit(CATALOG_LIMIT),
           supabase.from('product_types').select('id, name, prefix, category_id'),
+          supabase.from('product_categories').select('id, name, sort_order').order('sort_order'),
         ]);
 
         if (productsRes.error) {
@@ -41,6 +43,7 @@ export default function Catalog() {
         const productList = productsRes.data ?? [];
         setProducts(productList);
         setTypes(typesRes.data ?? []);
+        setCategories(categoriesRes.data ?? []);
 
         if (productList.length > 0) {
           const ids = productList.map((p) => p.id);
@@ -66,16 +69,22 @@ export default function Catalog() {
     load();
   }, []);
 
+  const typeIdToCategoryId = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    for (const t of types) map[t.id] = t.category_id;
+    return map;
+  }, [types]);
+
   const filtered = useMemo(() => {
     return products.filter((p) => {
-      if (typeFilter !== 'all' && p.type_id !== typeFilter) return false;
+      if (categoryFilter !== 'all' && typeIdToCategoryId[p.type_id] !== categoryFilter) return false;
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         return p.name.toLowerCase().includes(q) || p.product_code.toLowerCase().includes(q);
       }
       return true;
     });
-  }, [products, typeFilter, search]);
+  }, [products, categoryFilter, typeIdToCategoryId, search]);
 
   return (
     <div className="page">
@@ -88,21 +97,21 @@ export default function Catalog() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        {types.length > 0 && (
+        {categories.length > 0 && (
           <div className="type-chips">
             <button
-              className={typeFilter === 'all' ? 'chip chip-active' : 'chip'}
-              onClick={() => setTypeFilter('all')}
+              className={categoryFilter === 'all' ? 'chip chip-active' : 'chip'}
+              onClick={() => setCategoryFilter('all')}
             >
               All
             </button>
-            {types.map((t) => (
+            {categories.map((c) => (
               <button
-                key={t.id}
-                className={typeFilter === t.id ? 'chip chip-active' : 'chip'}
-                onClick={() => setTypeFilter(t.id)}
+                key={c.id}
+                className={categoryFilter === c.id ? 'chip chip-active' : 'chip'}
+                onClick={() => setCategoryFilter(c.id)}
               >
-                {t.name}
+                {c.name}
               </button>
             ))}
           </div>
