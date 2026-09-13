@@ -10,9 +10,9 @@ interface Props {
 }
 
 export function AdminProductRow({ product, imagePath, onChanged }: Props) {
-  const [mode, setMode] = useState<
-    'view' | 'edit' | 'sell' | 'restock' | 'photos' | 'colors-sale' | 'colors-acquire'
-  >('view');
+  const [mode, setMode] = useState<'view' | 'edit' | 'sell' | 'restock' | 'colors-sale' | 'colors-acquire'>(
+    'view'
+  );
   const [name, setName] = useState(product.name);
   const [priceSelling, setPriceSelling] = useState(String(product.price_selling));
   const [priceAcquired, setPriceAcquired] = useState(String(product.price_acquired));
@@ -141,6 +141,12 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
                 placeholder="Acquired"
               />
             </div>
+            <AdminProductPhotos
+              productId={product.id}
+              productCode={product.product_code}
+              isMultiColor={product.is_multi_color}
+              view="edit"
+            />
           </>
         ) : (
           <>
@@ -193,15 +199,6 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
         {error && <p className="error-text">{error}</p>}
 
-        {mode === 'photos' && (
-          <AdminProductPhotos
-            productId={product.id}
-            productCode={product.product_code}
-            isMultiColor={product.is_multi_color}
-            view="both"
-          />
-        )}
-
         {(mode === 'colors-sale' || mode === 'colors-acquire') && (
           <AdminProductPhotos
             productId={product.id}
@@ -218,7 +215,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         {mode === 'view' && (
           <div className="row-actions">
             <button className="btn btn-secondary" onClick={() => setMode('edit')}>
-              Edit Price
+              Edit
             </button>
             {product.is_multi_color ? (
               <>
@@ -241,9 +238,6 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
                 <button className="btn btn-secondary" onClick={() => setMode('restock')}>
                   Restock
                 </button>
-                <button className="btn btn-secondary" onClick={() => setMode('photos')}>
-                  Photos
-                </button>
               </>
             )}
             <button className="btn btn-secondary" disabled={saving} onClick={toggleArchive}>
@@ -252,7 +246,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
           </div>
         )}
 
-        {(mode === 'photos' || mode === 'colors-sale' || mode === 'colors-acquire') && (
+        {(mode === 'colors-sale' || mode === 'colors-acquire') && (
           <div className="row-actions">
             <button className="btn btn-secondary" onClick={() => setMode('view')}>
               Done

@@ -7,14 +7,15 @@ interface Props {
   productId: string;
   productCode: string;
   isMultiColor: boolean;
-  view: 'sale' | 'acquire' | 'both';
+  view: 'sale' | 'acquire' | 'edit';
 }
 
 const MAX_PHOTOS = 10;
 
 export function AdminProductPhotos({ productId, productCode, isMultiColor, view }: Props) {
-  const showSale = view === 'sale' || view === 'both';
-  const showAcquire = view === 'acquire' || view === 'both';
+  const showSale = view === 'sale';
+  const showAcquire = view === 'acquire';
+  const showAddPhoto = view === 'acquire' || view === 'edit';
   const [images, setImages] = useState<ProductImage[]>([]);
   const [saleQty, setSaleQty] = useState<Record<string, string>>({});
   const [acquireQty, setAcquireQty] = useState<Record<string, string>>({});
@@ -180,14 +181,14 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
 
       {images.length === 0 && <p className="hint-text">No photos on this product.</p>}
 
-      {showAcquire && images.length < MAX_PHOTOS && !pendingFile && (
+      {showAddPhoto && images.length < MAX_PHOTOS && !pendingFile && (
         <label className="image-add-tile">
           <input type="file" accept="image/*" capture="environment" onChange={handlePick} hidden />
           + Photo
         </label>
       )}
 
-      {showAcquire && pendingFile && (
+      {showAddPhoto && pendingFile && (
         <div className="admin-photo-item">
           <div className="admin-photo-thumb">
             <img src={URL.createObjectURL(pendingFile)} alt="New photo preview" />
