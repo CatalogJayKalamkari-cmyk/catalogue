@@ -89,23 +89,17 @@ export default function AdminDashboard() {
         const todayStart = startOfToday();
         const sellersSince = daysAgo(TOP_SELLERS_WINDOW_DAYS);
 
-        const [productsRes, typesRes, categoriesRes, salesRes, recentSalesRes, storageUsedBytes] =
-          await Promise.all([
-            supabase
-              .from('products')
-              .select('id, type_id, product_code, name, quantity, price_acquired, is_active, created_at'),
-            supabase.from('product_types').select('id, category_id'),
-            supabase.from('product_categories').select('id, name, sort_order').order('sort_order'),
-            supabase.from('stock_transactions').select('product_id, quantity_sold, revenue, created_at'),
-            supabase
-              .from('stock_transactions')
-              .select('product_id, quantity_sold, created_at')
-              .gte('created_at', sellersSince),
-            getStorageUsedBytes(),
-          ]);
+        const [productsRes, typesRes, categoriesRes, salesRes, storageUsedBytes] = await Promise.all([
+          supabase
+            .from('products')
+            .select('id, type_id, product_code, name, quantity, price_acquired, is_active, created_at'),
+          supabase.from('product_types').select('id, category_id'),
+          supabase.from('product_categories').select('id, name, sort_order').order('sort_order'),
+          supabase.from('stock_transactions').select('product_id, quantity_sold, revenue, created_at'),
+          getStorageUsedBytes(),
+        ]);
 
-        const firstError =
-          productsRes.error ?? typesRes.error ?? categoriesRes.error ?? salesRes.error ?? recentSalesRes.error;
+        const firstError = productsRes.error ?? typesRes.error ?? categoriesRes.error ?? salesRes.error;
         if (firstError) {
           setError(firstError.message ?? t('dashboard.failedToLoad'));
           return;
@@ -145,7 +139,8 @@ export default function AdminDashboard() {
         );
 
         const sellerTotals = new Map<string, number>();
-        for (const s of recentSalesRes.data ?? []) {
+        for (const s of allSales) {
+          if (s.created_at < sellersSince) continue;
           sellerTotals.set(s.product_id, (sellerTotals.get(s.product_id) ?? 0) + s.quantity_sold);
         }
         const topSellers: TopSeller[] = [...sellerTotals.entries()]
@@ -220,7 +215,7 @@ export default function AdminDashboard() {
               <StatCard
                 label={t('dashboard.profitToday')}
                 value={formatCurrency(stats.profitToday)}
-                tone="success"
+                tone={stats.profitToday >= 0 ? 'success' : 'danger'}
               />
             </div>
           </section>
@@ -234,7 +229,7 @@ export default function AdminDashboard() {
               <StatCard
                 label={t('dashboard.profitGenerated')}
                 value={formatCurrency(stats.profitTotal)}
-                tone="success"
+                tone={stats.profitTotal >= 0 ? 'success' : 'danger'}
               />
             </div>
             <p className="hint-text">{t('dashboard.profitHint')}</p>

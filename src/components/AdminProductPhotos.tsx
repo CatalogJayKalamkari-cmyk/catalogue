@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase, productImageUrl, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import { processImageToWebp } from '../lib/imageProcessing';
 import { useLanguage } from '../lib/i18n';
+import { computeSaleTotal, isBelowCost, parseSalePrice } from '../lib/sale';
 import type { ProductImage } from '../types';
 
 interface Props {
@@ -44,6 +45,9 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
     for (const img of data ?? []) defaults[img.id] = '0';
     setSaleQty(defaults);
     setAcquireQty(defaults);
+    // Any one-off custom price from a prior sale must not carry over and
+    // silently apply to the next sale of this color - reset to catalog price.
+    setSalePrice({});
     setLoading(false);
   }, [productId]);
 
@@ -56,14 +60,11 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
   }
 
   function saleTotalFor(img: ProductImage): number {
-    const qty = Number(saleQty[img.id] ?? '0');
-    const price = priceFor(img);
-    return Number.isFinite(qty) && Number.isFinite(price) ? qty * price : 0;
+    return computeSaleTotal(Number(saleQty[img.id] ?? '0'), priceFor(img));
   }
 
-  function isBelowCost(img: ProductImage): boolean {
-    const price = priceFor(img);
-    return Number.isFinite(price) && price < priceAcquired;
+  function imgBelowCost(img: ProductImage): boolean {
+    return isBelowCost(priceFor(img), priceAcquired);
   }
 
   async function saveSale(img: ProductImage) {
@@ -76,8 +77,8 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
       setError(t('photos.onlyColorInStock', { n: img.quantity }));
       return;
     }
-    const price = priceFor(img);
-    if (!Number.isFinite(price) || price < 0) {
+    const price = parseSalePrice(salePrice[img.id] ?? String(priceSelling));
+    if (price === null) {
       setError(t('sale.invalidPrice'));
       return;
     }
@@ -190,7 +191,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
                   onChange={(e) => setSalePrice((prev) => ({ ...prev, [img.id]: e.target.value }))}
                 />
               </div>
-              {isBelowCost(img) && (
+              {imgBelowCost(img) && (
                 <p className="error-text">{t('sale.belowCost', { acquired: priceAcquired.toLocaleString('en-IN') })}</p>
               )}
               <p className="hint-text">

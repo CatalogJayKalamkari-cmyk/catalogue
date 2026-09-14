@@ -3,6 +3,7 @@ import { supabase, productImageUrl } from '../lib/supabaseClient';
 import type { AdminProduct } from '../types';
 import { AdminProductPhotos } from './AdminProductPhotos';
 import { useLanguage } from '../lib/i18n';
+import { computeSaleTotal, isBelowCost, parseSalePrice } from '../lib/sale';
 import type { PrintType } from '../types';
 
 interface Props {
@@ -28,9 +29,8 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
   const sellQtyNum = Number(sellQty);
   const sellPriceNum = Number(sellPrice);
-  const saleTotal =
-    Number.isFinite(sellQtyNum) && Number.isFinite(sellPriceNum) ? sellQtyNum * sellPriceNum : 0;
-  const saleBelowCost = Number.isFinite(sellPriceNum) && sellPriceNum < product.price_acquired;
+  const saleTotal = computeSaleTotal(sellQtyNum, sellPriceNum);
+  const saleBelowCost = isBelowCost(sellPriceNum, product.price_acquired);
 
   async function saveEdit() {
     setError(null);
@@ -69,7 +69,8 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
       setError(t('row.onlyInStock', { n: product.quantity }));
       return;
     }
-    if (!Number.isFinite(sellPriceNum) || sellPriceNum < 0) {
+    const price = parseSalePrice(sellPrice);
+    if (price === null) {
       setError(t('sale.invalidPrice'));
       return;
     }
@@ -77,7 +78,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
     const { error } = await supabase.rpc('record_sale', {
       p_product_id: product.id,
       p_quantity: qty,
-      p_price_selling: sellPriceNum,
+      p_price_selling: price,
     });
     setSaving(false);
     if (error) {
