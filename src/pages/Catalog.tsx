@@ -77,6 +77,17 @@ export default function Catalog() {
     return map;
   }, [types]);
 
+  const categoriesWithProducts = useMemo(() => {
+    const idsWithProducts = new Set(products.map((p) => typeIdToCategoryId[p.type_id]));
+    return categories.filter((c) => idsWithProducts.has(c.id));
+  }, [categories, products, typeIdToCategoryId]);
+
+  useEffect(() => {
+    if (categoryFilter !== 'all' && !categoriesWithProducts.some((c) => c.id === categoryFilter)) {
+      setCategoryFilter('all');
+    }
+  }, [categoryFilter, categoriesWithProducts]);
+
   const filtered = useMemo(() => {
     return products.filter((p) => {
       if (categoryFilter !== 'all' && typeIdToCategoryId[p.type_id] !== categoryFilter) return false;
@@ -99,7 +110,7 @@ export default function Catalog() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        {categories.length > 0 && (
+        {categoriesWithProducts.length > 0 && (
           <div className="type-chips">
             <button
               className={categoryFilter === 'all' ? 'chip chip-active' : 'chip'}
@@ -107,7 +118,7 @@ export default function Catalog() {
             >
               {t('catalog.all')}
             </button>
-            {categories.map((c) => (
+            {categoriesWithProducts.map((c) => (
               <button
                 key={c.id}
                 className={categoryFilter === c.id ? 'chip chip-active' : 'chip'}

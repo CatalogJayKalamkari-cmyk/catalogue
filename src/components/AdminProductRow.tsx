@@ -21,9 +21,16 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
   const [priceSelling, setPriceSelling] = useState(String(product.price_selling));
   const [priceAcquired, setPriceAcquired] = useState(String(product.price_acquired));
   const [sellQty, setSellQty] = useState('1');
+  const [sellPrice, setSellPrice] = useState(String(product.price_selling));
   const [restockQty, setRestockQty] = useState('1');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const sellQtyNum = Number(sellQty);
+  const sellPriceNum = Number(sellPrice);
+  const saleTotal =
+    Number.isFinite(sellQtyNum) && Number.isFinite(sellPriceNum) ? sellQtyNum * sellPriceNum : 0;
+  const saleBelowCost = Number.isFinite(sellPriceNum) && sellPriceNum < product.price_acquired;
 
   async function saveEdit() {
     setError(null);
@@ -62,10 +69,15 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
       setError(t('row.onlyInStock', { n: product.quantity }));
       return;
     }
+    if (!Number.isFinite(sellPriceNum) || sellPriceNum < 0) {
+      setError(t('sale.invalidPrice'));
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.rpc('record_sale', {
       p_product_id: product.id,
       p_quantity: qty,
+      p_price_selling: sellPriceNum,
     });
     setSaving(false);
     if (error) {
@@ -171,6 +183,8 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
               productId={product.id}
               productCode={product.product_code}
               isMultiColor={product.is_multi_color}
+              priceSelling={product.price_selling}
+              priceAcquired={product.price_acquired}
               view="edit"
             />
           </>
@@ -194,21 +208,44 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
         </span>
 
         {mode === 'sell' && (
-          <div className="row-inline">
-            <input
-              type="number"
-              min="1"
-              max={product.quantity}
-              value={sellQty}
-              onChange={(e) => setSellQty(e.target.value)}
-            />
-            <button className="btn btn-primary" disabled={saving} onClick={confirmSale}>
-              {t('row.confirmSale')}
-            </button>
-            <button className="btn btn-secondary" onClick={() => setMode('view')}>
-              {t('row.cancel')}
-            </button>
-          </div>
+          <>
+            <div className="row-inline">
+              <div className="field-group">
+                <span className="field-label">{t('row.qty')}</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={product.quantity}
+                  value={sellQty}
+                  onChange={(e) => setSellQty(e.target.value)}
+                />
+              </div>
+              <div className="field-group">
+                <span className="field-label">{t('sale.priceLabel')}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={sellPrice}
+                  onChange={(e) => setSellPrice(e.target.value)}
+                />
+              </div>
+            </div>
+            {saleBelowCost && (
+              <p className="error-text">
+                {t('sale.belowCost', { acquired: product.price_acquired.toLocaleString('en-IN') })}
+              </p>
+            )}
+            <p className="hint-text">{t('sale.total', { amount: `₹${saleTotal.toLocaleString('en-IN')}` })}</p>
+            <div className="row-inline">
+              <button className="btn btn-primary" disabled={saving} onClick={confirmSale}>
+                {t('row.confirmSale')}
+              </button>
+              <button className="btn btn-secondary" onClick={() => setMode('view')}>
+                {t('row.cancel')}
+              </button>
+            </div>
+          </>
         )}
 
         {mode === 'restock' && (
@@ -235,6 +272,8 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
             productId={product.id}
             productCode={product.product_code}
             isMultiColor={product.is_multi_color}
+            priceSelling={product.price_selling}
+            priceAcquired={product.price_acquired}
             view={mode === 'colors-sale' ? 'sale' : 'acquire'}
           />
         )}
@@ -262,7 +301,10 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
                 <button
                   className="btn btn-primary"
                   disabled={product.quantity === 0}
-                  onClick={() => setMode('sell')}
+                  onClick={() => {
+                    setSellPrice(String(product.price_selling));
+                    setMode('sell');
+                  }}
                 >
                   {t('row.sale')}
                 </button>

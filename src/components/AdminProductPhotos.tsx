@@ -9,17 +9,20 @@ interface Props {
   productCode: string;
   isMultiColor: boolean;
   view: 'sale' | 'acquire' | 'edit';
+  priceSelling: number;
+  priceAcquired: number;
 }
 
 const MAX_PHOTOS = 10;
 
-export function AdminProductPhotos({ productId, productCode, isMultiColor, view }: Props) {
+export function AdminProductPhotos({ productId, productCode, isMultiColor, view, priceSelling, priceAcquired }: Props) {
   const { t } = useLanguage();
   const showSale = view === 'sale';
   const showAcquire = view === 'acquire';
   const showAddPhoto = view === 'acquire' || view === 'edit';
   const [images, setImages] = useState<ProductImage[]>([]);
   const [saleQty, setSaleQty] = useState<Record<string, string>>({});
+  const [salePrice, setSalePrice] = useState<Record<string, string>>({});
   const [acquireQty, setAcquireQty] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +51,21 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
     load();
   }, [load]);
 
+  function priceFor(img: ProductImage): number {
+    return Number(salePrice[img.id] ?? priceSelling);
+  }
+
+  function saleTotalFor(img: ProductImage): number {
+    const qty = Number(saleQty[img.id] ?? '0');
+    const price = priceFor(img);
+    return Number.isFinite(qty) && Number.isFinite(price) ? qty * price : 0;
+  }
+
+  function isBelowCost(img: ProductImage): boolean {
+    const price = priceFor(img);
+    return Number.isFinite(price) && price < priceAcquired;
+  }
+
   async function saveSale(img: ProductImage) {
     const qty = Number(saleQty[img.id]);
     if (!Number.isInteger(qty) || qty <= 0) {
@@ -58,8 +76,17 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
       setError(t('photos.onlyColorInStock', { n: img.quantity }));
       return;
     }
+    const price = priceFor(img);
+    if (!Number.isFinite(price) || price < 0) {
+      setError(t('sale.invalidPrice'));
+      return;
+    }
     setError(null);
-    const { error } = await supabase.rpc('sell_photo', { p_image_id: img.id, p_quantity: qty });
+    const { error } = await supabase.rpc('sell_photo', {
+      p_image_id: img.id,
+      p_quantity: qty,
+      p_price_selling: price,
+    });
     if (error) {
       setError(error.message);
       return;
@@ -155,10 +182,23 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view 
                   value={saleQty[img.id] ?? '0'}
                   onChange={(e) => setSaleQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
                 />
-                <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => saveSale(img)}>
-                  {t('photos.save')}
-                </button>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={salePrice[img.id] ?? String(priceSelling)}
+                  onChange={(e) => setSalePrice((prev) => ({ ...prev, [img.id]: e.target.value }))}
+                />
               </div>
+              {isBelowCost(img) && (
+                <p className="error-text">{t('sale.belowCost', { acquired: priceAcquired.toLocaleString('en-IN') })}</p>
+              )}
+              <p className="hint-text">
+                {t('sale.total', { amount: `₹${saleTotalFor(img).toLocaleString('en-IN')}` })}
+              </p>
+              <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => saveSale(img)}>
+                {t('photos.save')}
+              </button>
             </>
           )}
 

@@ -153,6 +153,11 @@ const translations = {
     'uploader.qty': 'Qty',
     'uploader.addPhoto': '+ Photo',
     'uploader.count': '{n}/{max} photos',
+
+    'sale.priceLabel': 'Sale Price (₹)',
+    'sale.total': 'Total: {amount}',
+    'sale.belowCost': 'Below the acquired price (₹{acquired}) — this sale will be a loss.',
+    'sale.invalidPrice': 'Enter a valid sale price.',
   },
   te: {
     'common.loading': 'లోడ్ అవుతోంది…',
@@ -301,6 +306,11 @@ const translations = {
     'uploader.qty': 'సంఖ్య',
     'uploader.addPhoto': '+ ఫోటో',
     'uploader.count': '{n}/{max} ఫోటోలు',
+
+    'sale.priceLabel': 'అమ్మకం ధర (₹)',
+    'sale.total': 'మొత్తం: {amount}',
+    'sale.belowCost': 'కొనుగోలు ధర (₹{acquired}) కంటే తక్కువ — ఈ అమ్మకంలో నష్టం వస్తుంది.',
+    'sale.invalidPrice': 'సరైన అమ్మకం ధర నమోదు చేయండి.',
   },
 } as const;
 
