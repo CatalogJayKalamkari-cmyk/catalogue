@@ -12,7 +12,7 @@ const translations = {
     'nav.add': '+ Add',
     'nav.logout': 'Logout',
 
-    'catalog.title': 'Catalog',
+    'catalog.title': 'Kalamkari',
     'catalog.search': 'Search name or code…',
     'catalog.all': 'All',
     'catalog.loading': 'Loading catalog…',
@@ -165,7 +165,7 @@ const translations = {
     'nav.add': '+ జోడించు',
     'nav.logout': 'లాగ్ అవుట్',
 
-    'catalog.title': 'కేటలాగ్',
+    'catalog.title': 'Kalamkari',
     'catalog.search': 'పేరు లేదా కోడ్ వెతకండి…',
     'catalog.all': 'అన్నీ',
     'catalog.loading': 'కేటలాగ్ లోడ్ అవుతోంది…',

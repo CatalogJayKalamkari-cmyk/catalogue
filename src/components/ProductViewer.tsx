@@ -15,6 +15,7 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
   const { t } = useLanguage();
   const [productIndex, setProductIndex] = useState(startIndex);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
   const [, forceRender] = useState(0);
   const imageCache = useRef<Record<string, { url: string; quantity: number; colorLabel: string | null }[]>>({});
   const dragStart = useRef<{ x: number; y: number } | null>(null);
@@ -23,6 +24,7 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
 
   useEffect(() => {
     setPhotoIndex(0);
+    setIsFavorite(false);
   }, [productIndex]);
 
   useEffect(() => {
@@ -89,23 +91,48 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
 
   return (
     <div className="viewer-overlay" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
-      <button className="viewer-back" onClick={onClose} aria-label={t('viewer.back')}>
-        ←
-      </button>
-
-      {photos.length > 1 && (
-        <div className="viewer-dots">
-          {photos.map((_, i) => (
-            <span key={i} className={i === photoIndex ? 'viewer-dot active' : 'viewer-dot'} />
-          ))}
-        </div>
-      )}
+      <div className="viewer-topbar">
+        <button className="viewer-back" onClick={onClose} aria-label={t('viewer.back')}>
+          ←
+        </button>
+        {photos.length > 0 && (
+          <div className="viewer-dots" aria-label={`${photoIndex + 1} of ${photos.length}`}>
+            {photos.map((_, i) => (
+              <button
+                key={i}
+                className={i === photoIndex ? 'viewer-dot active' : 'viewer-dot'}
+                onClick={() => setPhotoIndex(i)}
+                aria-label={`Photo ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="viewer-media">
+        <div className="viewer-media-shade" />
         {currentPhoto ? (
           <img src={currentPhoto.url} alt={product.name} draggable={false} />
         ) : (
           <div className="viewer-media-placeholder">{t('catalog.noPhoto')}</div>
+        )}
+        {photos.length > 1 && (
+          <div className="viewer-photo-nav">
+            <button
+              className="viewer-photo-control viewer-photo-control-prev"
+              onClick={() => setPhotoIndex((i) => (i - 1 + photos.length) % photos.length)}
+              aria-label="Previous photo"
+            >
+              ‹
+            </button>
+            <button
+              className="viewer-photo-control viewer-photo-control-next"
+              onClick={() => setPhotoIndex((i) => (i + 1) % photos.length)}
+              aria-label="Next photo"
+            >
+              ›
+            </button>
+          </div>
         )}
         {product.is_multi_color && currentPhoto?.quantity === 0 && (
           <span className="viewer-photo-sold-badge">{t('viewer.sold')}</span>
@@ -113,24 +140,40 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
       </div>
 
       <div className="viewer-details">
-        {!product.in_stock && <span className="viewer-badge-out">{t('catalog.outOfStock')}</span>}
-        <span className="product-code">{product.product_code}</span>
-        <span className="product-name">{product.name}</span>
-        {product.print_type && (
-          <span className="viewer-color-label">
-            {product.print_type === 'screen' ? t('addProduct.screenPrinted') : t('addProduct.blockPrinted')}
-          </span>
-        )}
-        {currentPhoto?.colorLabel && (
-          <span className="viewer-color-label">
-            {t('viewer.color')}: {currentPhoto.colorLabel}
-          </span>
-        )}
-        <div className="product-price-row">
-          <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
-          <span className="product-qty">
-            {t('catalog.qty')}: {product.is_multi_color ? (currentPhoto?.quantity ?? 0) : product.quantity}
-          </span>
+        <div className="viewer-details-main">
+          <div className="viewer-product-copy">
+            {!product.in_stock && <span className="viewer-badge-out">{t('catalog.outOfStock')}</span>}
+            <span className="product-code">{product.product_code}</span>
+            <span className="product-name">{product.name}</span>
+            {product.print_type && (
+              <span className="viewer-color-label">
+                {product.print_type === 'screen' ? t('addProduct.screenPrinted') : t('addProduct.blockPrinted')}
+              </span>
+            )}
+            {currentPhoto?.colorLabel && (
+              <span className="viewer-color-label">
+                {t('viewer.color')}: {currentPhoto.colorLabel}
+              </span>
+            )}
+          </div>
+          <div className="viewer-product-meta">
+            <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
+            <span className="product-qty">
+              {t('catalog.qty')}: {product.is_multi_color ? (currentPhoto?.quantity ?? 0) : product.quantity}
+            </span>
+          </div>
+        </div>
+        <div className="viewer-actions">
+          <button
+            className={isFavorite ? 'viewer-action active' : 'viewer-action'}
+            onClick={() => setIsFavorite((value) => !value)}
+            aria-label="Add to favorites"
+          >
+            {isFavorite ? '♥' : '♡'}
+          </button>
+          <button className="viewer-action" onClick={() => navigator.share?.({ title: product.name })} aria-label="Share product">
+            ↗
+          </button>
         </div>
       </div>
     </div>
