@@ -645,7 +645,7 @@ select {
 
 .admin-photo-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
   gap: 10px;
   margin: 4px 0;
 }
@@ -666,15 +666,21 @@ select {
 }
 
 .admin-photo-item .row-inline {
+  display: grid;
+  grid-template-columns: minmax(52px, 0.7fr) minmax(0, 1.3fr);
+  align-items: center;
   width: 100%;
 }
 
 .admin-photo-item .row-inline input {
   min-width: 0;
+  padding: 10px 8px;
 }
 
 .admin-photo-item > .btn {
   width: 100%;
+  min-width: 0;
+  padding-inline: 8px;
 }
 
 .admin-photo-thumb {
