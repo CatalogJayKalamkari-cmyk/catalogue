@@ -461,10 +461,6 @@ h1 {
   cursor: pointer;
 }
 
-.viewer-action.active {
-  color: #ffcfda;
-}
-
 /* Forms */
 
 .login-form,

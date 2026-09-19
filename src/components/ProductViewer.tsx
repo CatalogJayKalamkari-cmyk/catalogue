@@ -15,7 +15,6 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
   const { t } = useLanguage();
   const [productIndex, setProductIndex] = useState(startIndex);
   const [photoIndex, setPhotoIndex] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [, forceRender] = useState(0);
   const imageCache = useRef<Record<string, { url: string; quantity: number; colorLabel: string | null }[]>>({});
   const dragStart = useRef<{ x: number; y: number } | null>(null);
@@ -24,7 +23,6 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
 
   useEffect(() => {
     setPhotoIndex(0);
-    setIsFavorite(false);
   }, [productIndex]);
 
   useEffect(() => {
@@ -159,13 +157,6 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
         </div>
         <div className="viewer-side">
           <div className="viewer-actions">
-            <button
-              className={isFavorite ? 'viewer-action active' : 'viewer-action'}
-              onClick={() => setIsFavorite((value) => !value)}
-              aria-label="Add to favorites"
-            >
-              {isFavorite ? '♥' : '♡'}
-            </button>
             <button className="viewer-action" onClick={() => navigator.share?.({ title: product.name })} aria-label="Share product">
               ↗
             </button>
