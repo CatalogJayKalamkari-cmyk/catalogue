@@ -714,12 +714,17 @@ select {
 .image-replace-control {
   align-self: stretch;
   margin-top: auto;
+  min-height: 34px;
   padding: 7px 10px;
   border: 1px dashed var(--border);
   border-radius: 8px;
   color: var(--primary-dark);
   background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  white-space: nowrap;
   cursor: pointer;
 }
 

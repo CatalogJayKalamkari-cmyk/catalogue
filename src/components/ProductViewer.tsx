@@ -148,11 +148,9 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
                 {product.print_type === 'screen' ? t('addProduct.screenPrinted') : t('addProduct.blockPrinted')}
               </span>
             )}
-            {currentPhoto?.colorLabel && (
-              <span className="viewer-color-label">
-                {t('viewer.color')}: {currentPhoto.colorLabel}
-              </span>
-            )}
+            <span className="viewer-color-label">
+              {t('viewer.color')}: {currentPhoto?.colorLabel || '--'}
+            </span>
           </div>
         </div>
         <div className="viewer-side">

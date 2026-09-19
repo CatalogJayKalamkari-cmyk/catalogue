@@ -202,7 +202,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
               {replacingImageId === img.id ? t('photos.replacing') : t('photos.replace')}
             </label>
           )}
-          {img.color_label && <span className="hint-text">{img.color_label}</span>}
+          <span className="hint-text">{img.color_label || '--'}</span>
           {isMultiColor && (
             <span className="hint-text">
               {t('photos.initial')}: {img.initial_quantity} · {t('photos.current')}: {img.quantity}
