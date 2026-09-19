@@ -156,24 +156,26 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
               </span>
             )}
           </div>
+        </div>
+        <div className="viewer-side">
+          <div className="viewer-actions">
+            <button
+              className={isFavorite ? 'viewer-action active' : 'viewer-action'}
+              onClick={() => setIsFavorite((value) => !value)}
+              aria-label="Add to favorites"
+            >
+              {isFavorite ? '♥' : '♡'}
+            </button>
+            <button className="viewer-action" onClick={() => navigator.share?.({ title: product.name })} aria-label="Share product">
+              ↗
+            </button>
+          </div>
           <div className="viewer-product-meta">
             <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
             <span className="product-qty">
               {t('catalog.qty')}: {product.is_multi_color ? (currentPhoto?.quantity ?? 0) : product.quantity}
             </span>
           </div>
-        </div>
-        <div className="viewer-actions">
-          <button
-            className={isFavorite ? 'viewer-action active' : 'viewer-action'}
-            onClick={() => setIsFavorite((value) => !value)}
-            aria-label="Add to favorites"
-          >
-            {isFavorite ? '♥' : '♡'}
-          </button>
-          <button className="viewer-action" onClick={() => navigator.share?.({ title: product.name })} aria-label="Share product">
-            ↗
-          </button>
         </div>
       </div>
     </div>

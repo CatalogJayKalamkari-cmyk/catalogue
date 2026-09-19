@@ -368,7 +368,6 @@ h1 {
   min-width: 0;
   display: flex;
   align-items: end;
-  justify-content: space-between;
   gap: 16px;
 }
 
@@ -385,6 +384,17 @@ h1 {
   align-items: end;
   gap: 4px;
   white-space: nowrap;
+}
+
+.viewer-side {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  min-height: 104px;
+  flex-direction: column;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
 }
 
 .viewer-details .product-code {
@@ -434,9 +444,6 @@ h1 {
 }
 
 .viewer-actions {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: end;
   display: flex;
   justify-content: end;
   gap: 10px;
