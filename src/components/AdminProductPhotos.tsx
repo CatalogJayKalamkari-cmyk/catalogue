@@ -31,6 +31,8 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
   const [pendingColor, setPendingColor] = useState('');
   const [pendingQty, setPendingQty] = useState('1');
   const [uploading, setUploading] = useState(false);
+  const [replacingImageId, setReplacingImageId] = useState<string | null>(null);
+  const [imageVersion, setImageVersion] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -116,6 +118,23 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
     e.target.value = '';
   }
 
+  async function replacePhoto(img: ProductImage, file: File) {
+    setError(null);
+    setReplacingImageId(img.id);
+    try {
+      const webp = await processImageToWebp(file);
+      const { error: uploadError } = await supabase.storage
+        .from(PRODUCT_IMAGES_BUCKET)
+        .upload(img.storage_path, webp, { contentType: 'image/webp', upsert: true });
+      if (uploadError) throw new Error(uploadError.message);
+      setImageVersion(Date.now());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('photos.couldNotReplace'));
+    } finally {
+      setReplacingImageId(null);
+    }
+  }
+
   async function confirmAddPhoto() {
     if (!pendingFile) return;
     if (isMultiColor && (!Number.isInteger(Number(pendingQty)) || Number(pendingQty) < 0)) {
@@ -163,9 +182,26 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
       {images.map((img) => (
         <div key={img.id} className="admin-photo-item">
           <div className="admin-photo-thumb">
-            <img src={productImageUrl(img.storage_path)} alt="" />
+            <img src={`${productImageUrl(img.storage_path)}?v=${imageVersion}`} alt="" />
             {isMultiColor && img.quantity === 0 && <span className="badge badge-out">{t('photos.sold')}</span>}
           </div>
+          {view === 'edit' && (
+            <label className="image-replace-control">
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) replacePhoto(img, file);
+                  e.target.value = '';
+                }}
+                disabled={replacingImageId !== null}
+                hidden
+              />
+              {replacingImageId === img.id ? t('photos.replacing') : t('photos.replace')}
+            </label>
+          )}
           {img.color_label && <span className="hint-text">{img.color_label}</span>}
           {isMultiColor && (
             <span className="hint-text">

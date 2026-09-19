@@ -693,6 +693,17 @@ select {
   object-fit: cover;
 }
 
+.image-replace-control {
+  align-self: stretch;
+  padding: 7px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--primary-dark);
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+}
+
 /* Admin nav */
 
 .admin-nav {
