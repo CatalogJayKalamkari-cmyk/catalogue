@@ -168,7 +168,7 @@ const translations = {
     'nav.add': '+ జోడించు',
     'nav.logout': 'లాగ్ అవుట్',
 
-    'catalog.title': 'Kalamkari',
+    'catalog.title': 'కలంకారి',
     'catalog.search': 'పేరు లేదా కోడ్ వెతకండి…',
     'catalog.all': 'అన్నీ',
     'catalog.loading': 'కేటలాగ్ లోడ్ అవుతోంది…',
