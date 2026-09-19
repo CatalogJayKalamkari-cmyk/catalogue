@@ -356,12 +356,16 @@ h1 {
   z-index: 2;
   padding: 28px 16px calc(18px + env(safe-area-inset-bottom));
   background: linear-gradient(to top, rgba(0, 0, 0, 0.94) 20%, rgba(0, 0, 0, 0.62) 75%, rgba(0, 0, 0, 0));
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
   gap: 14px;
   color: #fff;
 }
 
 .viewer-details-main {
+  grid-column: 1;
+  min-width: 0;
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -430,6 +434,9 @@ h1 {
 }
 
 .viewer-actions {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
   display: flex;
   justify-content: end;
   gap: 10px;
