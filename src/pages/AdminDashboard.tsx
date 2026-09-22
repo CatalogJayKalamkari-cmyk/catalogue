@@ -7,7 +7,6 @@ import { useLanguage } from '../lib/i18n';
 
 const FREE_TIER_STORAGE_BYTES = 1024 * 1024 * 1024; // Supabase free tier: 1 GB
 const LOW_STOCK_THRESHOLD = 3;
-const TOP_SELLERS_WINDOW_DAYS = 30;
 
 interface CategoryStat {
   id: string;
@@ -16,27 +15,14 @@ interface CategoryStat {
   quantityRemaining: number;
 }
 
-interface TopSeller {
-  productId: string;
-  name: string;
-  productCode: string;
-  quantitySold: number;
-}
-
 interface Stats {
   totalProducts: number;
   quantityRemaining: number;
   addedToday: number;
-  soldToday: number;
-  revenueToday: number;
-  profitToday: number;
-  revenueTotal: number;
-  profitTotal: number;
   inStockCount: number;
   lowStockCount: number;
   outOfStockCount: number;
   storageUsedBytes: number;
-  topSellers: TopSeller[];
   categories: CategoryStat[];
 }
 
@@ -46,21 +32,8 @@ function startOfToday(): string {
   return d.toISOString();
 }
 
-function daysAgo(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-
 function storagePct(bytes: number): number {
   return Math.min((bytes / FREE_TIER_STORAGE_BYTES) * 100, 100);
-}
-
-function formatCurrency(n: number): string {
-  const rounded = Math.round(n);
-  const sign = rounded < 0 ? '-' : '';
-  return `${sign}₹${Math.abs(rounded).toLocaleString('en-IN')}`;
 }
 
 async function getStorageUsedBytes(): Promise<number> {
@@ -87,19 +60,15 @@ export default function AdminDashboard() {
       setError(null);
       try {
         const todayStart = startOfToday();
-        const sellersSince = daysAgo(TOP_SELLERS_WINDOW_DAYS);
 
-        const [productsRes, typesRes, categoriesRes, salesRes, storageUsedBytes] = await Promise.all([
-          supabase
-            .from('products')
-            .select('id, type_id, product_code, name, quantity, price_acquired, is_active, created_at'),
+        const [productsRes, typesRes, categoriesRes, storageUsedBytes] = await Promise.all([
+          supabase.from('products').select('id, type_id, quantity, is_active, created_at'),
           supabase.from('product_types').select('id, category_id'),
           supabase.from('product_categories').select('id, name, sort_order').order('sort_order'),
-          supabase.from('stock_transactions').select('product_id, quantity_sold, revenue, created_at'),
           getStorageUsedBytes(),
         ]);
 
-        const firstError = productsRes.error ?? typesRes.error ?? categoriesRes.error ?? salesRes.error;
+        const firstError = productsRes.error ?? typesRes.error ?? categoriesRes.error;
         if (firstError) {
           setError(firstError.message ?? t('dashboard.failedToLoad'));
           return;
@@ -107,7 +76,6 @@ export default function AdminDashboard() {
 
         const allProducts = productsRes.data ?? [];
         const activeProducts = allProducts.filter((p) => p.is_active);
-        const productById = new Map(allProducts.map((p) => [p.id, p]));
 
         const addedToday = activeProducts.filter((p) => p.created_at >= todayStart).length;
         const quantityRemaining = activeProducts.reduce((sum, p) => sum + p.quantity, 0);
@@ -117,44 +85,6 @@ export default function AdminDashboard() {
           (p) => p.quantity > 0 && p.quantity <= LOW_STOCK_THRESHOLD
         ).length;
         const inStockCount = activeProducts.length - outOfStockCount - lowStockCount;
-
-        function profitOf(productId: string, quantitySold: number, revenue: number): number {
-          const cost = (productById.get(productId)?.price_acquired ?? 0) * quantitySold;
-          return revenue - cost;
-        }
-
-        const allSales = salesRes.data ?? [];
-        const revenueTotal = allSales.reduce((sum, s) => sum + Number(s.revenue), 0);
-        const profitTotal = allSales.reduce(
-          (sum, s) => sum + profitOf(s.product_id, s.quantity_sold, Number(s.revenue)),
-          0
-        );
-
-        const salesToday = allSales.filter((s) => s.created_at >= todayStart);
-        const soldToday = salesToday.reduce((sum, s) => sum + s.quantity_sold, 0);
-        const revenueToday = salesToday.reduce((sum, s) => sum + Number(s.revenue), 0);
-        const profitToday = salesToday.reduce(
-          (sum, s) => sum + profitOf(s.product_id, s.quantity_sold, Number(s.revenue)),
-          0
-        );
-
-        const sellerTotals = new Map<string, number>();
-        for (const s of allSales) {
-          if (s.created_at < sellersSince) continue;
-          sellerTotals.set(s.product_id, (sellerTotals.get(s.product_id) ?? 0) + s.quantity_sold);
-        }
-        const topSellers: TopSeller[] = [...sellerTotals.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([productId, quantitySold]) => {
-            const product = productById.get(productId);
-            return {
-              productId,
-              name: product?.name ?? '—',
-              productCode: product?.product_code ?? '',
-              quantitySold,
-            };
-          });
 
         const categoryIdByTypeId = new Map((typesRes.data ?? []).map((pt) => [pt.id, pt.category_id]));
         const categoryTotals = new Map<string, { productCount: number; quantityRemaining: number }>();
@@ -179,16 +109,10 @@ export default function AdminDashboard() {
           totalProducts: activeProducts.length,
           quantityRemaining,
           addedToday,
-          soldToday,
-          revenueToday,
-          profitToday,
-          revenueTotal,
-          profitTotal,
           inStockCount,
           lowStockCount,
           outOfStockCount,
           storageUsedBytes,
-          topSellers,
           categories,
         });
       } catch (err) {
@@ -207,32 +131,12 @@ export default function AdminDashboard() {
       {stats && (
         <>
           <section className="dashboard-section">
-            <h2>{t('dashboard.section.today')}</h2>
-            <div className="stat-grid">
-              <StatCard label={t('dashboard.addedToday')} value={stats.addedToday.toString()} />
-              <StatCard label={t('dashboard.soldToday')} value={stats.soldToday.toString()} />
-              <StatCard label={t('dashboard.revenueToday')} value={formatCurrency(stats.revenueToday)} />
-              <StatCard
-                label={t('dashboard.profitToday')}
-                value={formatCurrency(stats.profitToday)}
-                tone={stats.profitToday >= 0 ? 'success' : 'danger'}
-              />
-            </div>
-          </section>
-
-          <section className="dashboard-section">
             <h2>{t('dashboard.section.overall')}</h2>
             <div className="stat-grid">
               <StatCard label={t('dashboard.totalProducts')} value={stats.totalProducts.toString()} />
               <StatCard label={t('dashboard.quantityRemaining')} value={stats.quantityRemaining.toString()} />
-              <StatCard label={t('dashboard.revenueGenerated')} value={formatCurrency(stats.revenueTotal)} />
-              <StatCard
-                label={t('dashboard.profitGenerated')}
-                value={formatCurrency(stats.profitTotal)}
-                tone={stats.profitTotal >= 0 ? 'success' : 'danger'}
-              />
+              <StatCard label={t('dashboard.addedToday')} value={stats.addedToday.toString()} />
             </div>
-            <p className="hint-text">{t('dashboard.profitHint')}</p>
           </section>
 
           <section className="dashboard-section">
@@ -246,19 +150,6 @@ export default function AdminDashboard() {
               />
               <StatCard label={t('dashboard.outOfStock')} value={stats.outOfStockCount.toString()} tone="danger" />
             </div>
-          </section>
-
-          <section className="dashboard-section">
-            <h2>{t('dashboard.section.topSellers')}</h2>
-            <RankedList
-              emptyText={t('dashboard.noSales')}
-              items={stats.topSellers.map((s) => ({
-                key: s.productId,
-                title: s.name,
-                subtitle: s.productCode,
-                value: t('dashboard.unitsSold', { n: s.quantitySold }),
-              }))}
-            />
           </section>
 
           <section className="dashboard-section">

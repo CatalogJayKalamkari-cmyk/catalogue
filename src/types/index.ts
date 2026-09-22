@@ -18,7 +18,6 @@ export interface PublicProduct {
   product_code: string;
   name: string;
   type_id: string;
-  price_selling: number;
   quantity: number;
   is_multi_color: boolean;
   print_type: PrintType | null;
@@ -31,8 +30,6 @@ export interface AdminProduct {
   type_id: string;
   product_code: string;
   name: string;
-  price_selling: number;
-  price_acquired: number;
   quantity: number;
   is_active: boolean;
   is_multi_color: boolean;
@@ -49,13 +46,4 @@ export interface ProductImage {
   quantity: number;
   initial_quantity: number;
   color_label: string | null;
-}
-
-export interface StockTransaction {
-  id: string;
-  product_id: string;
-  quantity_sold: number;
-  price_selling_at_sale: number;
-  revenue: number;
-  created_at: string;
 }

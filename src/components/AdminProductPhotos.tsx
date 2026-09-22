@@ -2,29 +2,20 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase, productImageUrl, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import { processImageToWebp } from '../lib/imageProcessing';
 import { useLanguage } from '../lib/i18n';
-import { computeSaleTotal, isBelowCost, parseSalePrice } from '../lib/sale';
 import type { ProductImage } from '../types';
 
 interface Props {
   productId: string;
   productCode: string;
   isMultiColor: boolean;
-  view: 'sale' | 'acquire' | 'edit';
-  priceSelling: number;
-  priceAcquired: number;
 }
 
 const MAX_PHOTOS = 10;
 
-export function AdminProductPhotos({ productId, productCode, isMultiColor, view, priceSelling, priceAcquired }: Props) {
+export function AdminProductPhotos({ productId, productCode, isMultiColor }: Props) {
   const { t } = useLanguage();
-  const showSale = view === 'sale';
-  const showAcquire = view === 'acquire';
-  const showAddPhoto = view === 'acquire' || view === 'edit';
   const [images, setImages] = useState<ProductImage[]>([]);
-  const [saleQty, setSaleQty] = useState<Record<string, string>>({});
-  const [salePrice, setSalePrice] = useState<Record<string, string>>({});
-  const [acquireQty, setAcquireQty] = useState<Record<string, string>>({});
+  const [qty, setQty] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -32,6 +23,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
   const [pendingQty, setPendingQty] = useState('1');
   const [uploading, setUploading] = useState(false);
   const [replacingImageId, setReplacingImageId] = useState<string | null>(null);
+  const [savingImageId, setSavingImageId] = useState<string | null>(null);
   const [imageVersion, setImageVersion] = useState(0);
 
   const load = useCallback(async () => {
@@ -44,12 +36,8 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
     if (error) setError(error.message);
     setImages(data ?? []);
     const defaults: Record<string, string> = {};
-    for (const img of data ?? []) defaults[img.id] = '0';
-    setSaleQty(defaults);
-    setAcquireQty(defaults);
-    // Any one-off custom price from a prior sale must not carry over and
-    // silently apply to the next sale of this color - reset to catalog price.
-    setSalePrice({});
+    for (const img of data ?? []) defaults[img.id] = String(img.quantity);
+    setQty(defaults);
     setLoading(false);
   }, [productId]);
 
@@ -57,54 +45,16 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
     load();
   }, [load]);
 
-  function priceFor(img: ProductImage): number {
-    return Number(salePrice[img.id] ?? priceSelling);
-  }
-
-  function saleTotalFor(img: ProductImage): number {
-    return computeSaleTotal(Number(saleQty[img.id] ?? '0'), priceFor(img));
-  }
-
-  function imgBelowCost(img: ProductImage): boolean {
-    return isBelowCost(priceFor(img), priceAcquired);
-  }
-
-  async function saveSale(img: ProductImage) {
-    const qty = Number(saleQty[img.id]);
-    if (!Number.isInteger(qty) || qty <= 0) {
-      setError(t('photos.invalidSaleQty'));
-      return;
-    }
-    if (qty > img.quantity) {
-      setError(t('photos.onlyColorInStock', { n: img.quantity }));
-      return;
-    }
-    const price = parseSalePrice(salePrice[img.id] ?? String(priceSelling));
-    if (price === null) {
-      setError(t('sale.invalidPrice'));
+  async function saveQuantity(img: ProductImage) {
+    const newQty = Number(qty[img.id]);
+    if (!Number.isInteger(newQty) || newQty < 0) {
+      setError(t('photos.invalidColorQty'));
       return;
     }
     setError(null);
-    const { error } = await supabase.rpc('sell_photo', {
-      p_image_id: img.id,
-      p_quantity: qty,
-      p_price_selling: price,
-    });
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    load();
-  }
-
-  async function saveAcquire(img: ProductImage) {
-    const qty = Number(acquireQty[img.id]);
-    if (!Number.isInteger(qty) || qty <= 0) {
-      setError(t('photos.invalidAcquireQty'));
-      return;
-    }
-    setError(null);
-    const { error } = await supabase.rpc('acquire_photo', { p_image_id: img.id, p_quantity: qty });
+    setSavingImageId(img.id);
+    const { error } = await supabase.from('product_images').update({ quantity: newQty }).eq('id', img.id);
+    setSavingImageId(null);
     if (error) {
       setError(error.message);
       return;
@@ -185,71 +135,42 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
             <img src={`${productImageUrl(img.storage_path)}?v=${imageVersion}`} alt="" />
             {isMultiColor && img.quantity === 0 && <span className="badge badge-out">{t('photos.sold')}</span>}
           </div>
-          {view === 'edit' && (
-            <label className="image-replace-control">
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) replacePhoto(img, file);
-                  e.target.value = '';
-                }}
-                disabled={replacingImageId !== null}
-                hidden
-              />
-              {replacingImageId === img.id ? t('photos.replacing') : t('photos.replace')}
-            </label>
-          )}
+          <label className="image-replace-control">
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) replacePhoto(img, file);
+                e.target.value = '';
+              }}
+              disabled={replacingImageId !== null}
+              hidden
+            />
+            {replacingImageId === img.id ? t('photos.replacing') : t('photos.replace')}
+          </label>
           <span className="hint-text">{img.color_label || '--'}</span>
+
           {isMultiColor && (
-            <span className="hint-text">
-              {t('photos.initial')}: {img.initial_quantity} · {t('photos.current')}: {img.quantity}
-            </span>
-          )}
-
-          {isMultiColor && showSale && (
             <>
-              <span className="hint-text">{t('photos.sale')}</span>
+              <span className="hint-text">{t('photos.initial')}: {img.initial_quantity}</span>
               <div className="row-inline">
-                <input
-                  type="number"
-                  min="0"
-                  value={saleQty[img.id] ?? '0'}
-                  onChange={(e) => setSaleQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
-                />
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={salePrice[img.id] ?? String(priceSelling)}
-                  onChange={(e) => setSalePrice((prev) => ({ ...prev, [img.id]: e.target.value }))}
-                />
-              </div>
-              {imgBelowCost(img) && (
-                <p className="error-text">{t('sale.belowCost', { acquired: priceAcquired.toLocaleString('en-IN') })}</p>
-              )}
-              <p className="hint-text">
-                {t('sale.total', { amount: `₹${saleTotalFor(img).toLocaleString('en-IN')}` })}
-              </p>
-              <button className="btn btn-primary" disabled={img.quantity === 0} onClick={() => saveSale(img)}>
-                {t('photos.save')}
-              </button>
-            </>
-          )}
-
-          {isMultiColor && showAcquire && (
-            <>
-              <span className="hint-text">{t('photos.acquired')}</span>
-              <div className="row-inline">
-                <input
-                  type="number"
-                  min="0"
-                  value={acquireQty[img.id] ?? '0'}
-                  onChange={(e) => setAcquireQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
-                />
-                <button className="btn btn-secondary" onClick={() => saveAcquire(img)}>
+                <div className="field-group">
+                  <span className="field-label">{t('row.qty')}</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={qty[img.id] ?? '0'}
+                    onChange={(e) => setQty((prev) => ({ ...prev, [img.id]: e.target.value }))}
+                  />
+                </div>
+                <button
+                  className="btn btn-secondary"
+                  disabled={savingImageId === img.id}
+                  onClick={() => saveQuantity(img)}
+                >
                   {t('photos.save')}
                 </button>
               </div>
@@ -260,14 +181,14 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor, view,
 
       {images.length === 0 && <p className="hint-text">{t('photos.none')}</p>}
 
-      {showAddPhoto && images.length < MAX_PHOTOS && !pendingFile && (
+      {images.length < MAX_PHOTOS && !pendingFile && (
         <label className="image-add-tile">
           <input type="file" accept="image/*" capture="environment" onChange={handlePick} hidden />
           {t('photos.addPhoto')}
         </label>
       )}
 
-      {showAddPhoto && pendingFile && (
+      {pendingFile && (
         <div className="admin-photo-item">
           <div className="admin-photo-thumb">
             <img src={URL.createObjectURL(pendingFile)} alt="New photo preview" />

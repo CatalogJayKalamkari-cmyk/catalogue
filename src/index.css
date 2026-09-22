@@ -211,19 +211,13 @@ h1 {
   line-height: 1.25;
 }
 
-.product-price-row {
+.product-meta-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
   margin-top: auto;
   padding-top: 2px;
-}
-
-.product-price {
-  font-size: 0.95rem;
-  color: var(--primary-dark);
-  font-weight: 700;
 }
 
 .product-qty {
@@ -404,10 +398,6 @@ h1 {
 .viewer-details .product-name {
   color: #fff;
   font-size: 1.05rem;
-}
-
-.viewer-details .product-price {
-  color: #fff;
 }
 
 .viewer-details .product-qty {

@@ -14,8 +14,6 @@ export default function AdminAddProduct() {
   const [name, setName] = useState('');
   const [printType, setPrintType] = useState<PrintType>('screen');
   const [typeId, setTypeId] = useState('');
-  const [priceSelling, setPriceSelling] = useState('');
-  const [priceAcquired, setPriceAcquired] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [colorMode, setColorMode] = useState<'single' | 'multi-color'>('single');
   const [images, setImages] = useState<ImageEntry[]>([]);
@@ -27,8 +25,6 @@ export default function AdminAddProduct() {
     setName('');
     setPrintType('screen');
     setTypeId('');
-    setPriceSelling('');
-    setPriceAcquired('');
     setQuantity('1');
     setColorMode('single');
     setImages([]);
@@ -56,23 +52,9 @@ export default function AdminAddProduct() {
       setError(t('addProduct.needColorQty'));
       return;
     }
-    const sellingNum = Number(priceSelling);
-    const acquiredNum = Number(priceAcquired);
     const quantityNum = isMultiColor
       ? images.reduce((sum, img) => sum + Number(img.quantity), 0)
       : Number(quantity);
-    if (!Number.isFinite(sellingNum) || sellingNum < 0) {
-      setError(t('addProduct.needSellingPrice'));
-      return;
-    }
-    if (!Number.isFinite(acquiredNum) || acquiredNum < 0) {
-      setError(t('addProduct.needAcquiredPrice'));
-      return;
-    }
-    if (sellingNum < acquiredNum) {
-      setError(t('addProduct.priceError'));
-      return;
-    }
     if (!isMultiColor && (!Number.isInteger(quantityNum) || quantityNum < 0)) {
       setError(t('addProduct.needQty'));
       return;
@@ -84,8 +66,6 @@ export default function AdminAddProduct() {
         .rpc('create_product', {
           p_type_id: typeId,
           p_name: name,
-          p_price_selling: sellingNum,
-          p_price_acquired: acquiredNum,
           p_quantity: quantityNum,
           p_is_multi_color: isMultiColor,
           p_print_type: printType,
@@ -176,32 +156,6 @@ export default function AdminAddProduct() {
         <label>
           {t('addProduct.type')}
           <TypeSelect value={typeId} onChange={setTypeId} />
-        </label>
-
-        <label>
-          {t('addProduct.sellingPrice')}
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            value={priceSelling}
-            onChange={(e) => setPriceSelling(e.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          {t('addProduct.acquiredPrice')}
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            value={priceAcquired}
-            onChange={(e) => setPriceAcquired(e.target.value)}
-            required
-          />
         </label>
 
         <label>

@@ -31,8 +31,7 @@ export function ProductCard({ product, imagePath, onClick }: Props) {
       <div className="product-card-body">
         <span className="product-code">{product.product_code}</span>
         <span className="product-name">{product.name}</span>
-        <div className="product-price-row">
-          <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
+        <div className="product-meta-row">
           <span className="product-qty">
             {t('catalog.qty')}: {product.quantity}
           </span>

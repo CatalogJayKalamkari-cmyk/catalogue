@@ -160,7 +160,6 @@ export function ProductViewer({ products, startIndex, onClose }: Props) {
             </button>
           </div>
           <div className="viewer-product-meta">
-            <span className="product-price">₹{product.price_selling.toLocaleString('en-IN')}</span>
             <span className="product-qty">
               {t('catalog.qty')}: {product.is_multi_color ? (currentPhoto?.quantity ?? 0) : product.quantity}
             </span>
