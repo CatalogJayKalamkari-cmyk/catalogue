@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function ProductCard({ product, imagePath, onClick }: Props) {
-  const { t } = useLanguage();
+  const { t, tt } = useLanguage();
   return (
     <div
       className={`product-card${product.in_stock ? '' : ' out-of-stock'}`}
@@ -30,7 +30,7 @@ export function ProductCard({ product, imagePath, onClick }: Props) {
       </div>
       <div className="product-card-body">
         <span className="product-code">{product.product_code}</span>
-        <span className="product-name">{product.name}</span>
+        <span className="product-name">{tt(product.name)}</span>
         <div className="product-meta-row">
           <span className="product-qty">
             {t('catalog.qty')}: {product.quantity}

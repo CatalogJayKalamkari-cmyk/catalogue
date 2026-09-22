@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function AdminProductRow({ product, imagePath, onChanged }: Props) {
-  const { t } = useLanguage();
+  const { t, tt } = useLanguage();
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [printType, setPrintType] = useState<PrintType>(product.print_type ?? 'screen');
   const [quantity, setQuantity] = useState(String(product.quantity));
@@ -72,7 +72,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
         {mode === 'edit' ? (
           <>
-            <span className="product-name">{product.name}</span>
+            <span className="product-name">{tt(product.name)}</span>
             <div className="row-inline">
               <button
                 type="button"
@@ -110,7 +110,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
           </>
         ) : (
           <>
-            <span className="product-name">{product.name}</span>
+            <span className="product-name">{tt(product.name)}</span>
             {product.print_type && (
               <span className="hint-text">
                 {product.print_type === 'screen' ? t('addProduct.screenPrinted') : t('addProduct.blockPrinted')}
