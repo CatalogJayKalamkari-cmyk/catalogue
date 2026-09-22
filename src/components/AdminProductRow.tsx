@@ -14,7 +14,6 @@ interface Props {
 export function AdminProductRow({ product, imagePath, onChanged }: Props) {
   const { t } = useLanguage();
   const [mode, setMode] = useState<'view' | 'edit'>('view');
-  const [name, setName] = useState(product.name);
   const [printType, setPrintType] = useState<PrintType>(product.print_type ?? 'screen');
   const [quantity, setQuantity] = useState(String(product.quantity));
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +21,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
   async function saveEdit() {
     setError(null);
-    if (!name.trim()) {
-      setError(t('row.checkValues'));
-      return;
-    }
-    const update: { name: string; print_type: PrintType; quantity?: number } = {
-      name: name.trim(),
+    const update: { print_type: PrintType; quantity?: number } = {
       print_type: printType,
     };
     if (!product.is_multi_color) {
@@ -78,7 +72,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
         {mode === 'edit' ? (
           <>
-            <input value={name} onChange={(e) => setName(e.target.value)} />
+            <span className="product-name">{product.name}</span>
             <div className="row-inline">
               <button
                 type="button"

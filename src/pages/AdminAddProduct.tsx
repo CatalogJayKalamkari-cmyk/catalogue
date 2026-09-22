@@ -11,7 +11,6 @@ import type { AdminProduct, PrintType } from '../types';
 export default function AdminAddProduct() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [name, setName] = useState('');
   const [printType, setPrintType] = useState<PrintType>('screen');
   const [typeId, setTypeId] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -22,7 +21,6 @@ export default function AdminAddProduct() {
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
-    setName('');
     setPrintType('screen');
     setTypeId('');
     setQuantity('1');
@@ -65,7 +63,6 @@ export default function AdminAddProduct() {
       const { data: rpcData, error: createError } = await supabase
         .rpc('create_product', {
           p_type_id: typeId,
-          p_name: name,
           p_quantity: quantityNum,
           p_is_multi_color: isMultiColor,
           p_print_type: printType,
@@ -126,11 +123,6 @@ export default function AdminAddProduct() {
             max={10}
             showColorInput={colorMode === 'multi-color'}
           />
-        </label>
-
-        <label>
-          {t('addProduct.name')}
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
 
         <label>

@@ -17,10 +17,10 @@ begin
   select id into v_dupatta_type from product_types where name = 'Dupatta';
   select id into v_general_type from product_types where name = 'General';
 
-  perform create_product(v_saree_type,   'Kalamkari Hand-painted Saree', 12);
-  perform create_product(v_saree_type,   'Block Print Cotton Saree',     20);
-  perform create_product(v_dupatta_type, 'Kalamkari Cotton Dupatta',     30);
-  perform create_product(v_dupatta_type, 'Printed Silk Dupatta',         15);
-  perform create_product(v_general_type, 'Sample Test Product',           5);
-  perform create_product(v_general_type, 'Out of Stock Test Item',        0);
+  perform create_product(v_saree_type,   12);
+  perform create_product(v_saree_type,   20);
+  perform create_product(v_dupatta_type, 30);
+  perform create_product(v_dupatta_type, 15);
+  perform create_product(v_general_type,  5);
+  perform create_product(v_general_type,  0);
 end $$;
