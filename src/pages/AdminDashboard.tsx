@@ -2,17 +2,24 @@ import { useEffect, useState } from 'react';
 import { supabase, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import { AdminNav } from '../components/AdminNav';
 import { StatCard } from '../components/StatCard';
-import { RankedList } from '../components/RankedList';
 import { useLanguage } from '../lib/i18n';
 
 const FREE_TIER_STORAGE_BYTES = 1024 * 1024 * 1024; // Supabase free tier: 1 GB
 const LOW_STOCK_THRESHOLD = 3;
+
+interface TypeStat {
+  id: string;
+  name: string;
+  productCount: number;
+  quantityRemaining: number;
+}
 
 interface CategoryStat {
   id: string;
   name: string;
   productCount: number;
   quantityRemaining: number;
+  types: TypeStat[];
 }
 
 interface Stats {
@@ -51,7 +58,7 @@ async function getStorageUsedBytes(): Promise<number> {
 }
 
 export default function AdminDashboard() {
-  const { t, tc } = useLanguage();
+  const { t, tc, tt } = useLanguage();
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +70,7 @@ export default function AdminDashboard() {
 
         const [productsRes, typesRes, categoriesRes, storageUsedBytes] = await Promise.all([
           supabase.from('products').select('id, type_id, quantity, is_active, created_at'),
-          supabase.from('product_types').select('id, category_id'),
+          supabase.from('product_types').select('id, name, category_id'),
           supabase.from('product_categories').select('id, name, sort_order').order('sort_order'),
           getStorageUsedBytes(),
         ]);
@@ -86,7 +93,17 @@ export default function AdminDashboard() {
         ).length;
         const inStockCount = activeProducts.length - outOfStockCount - lowStockCount;
 
-        const categoryIdByTypeId = new Map((typesRes.data ?? []).map((pt) => [pt.id, pt.category_id]));
+        const types = typesRes.data ?? [];
+        const categoryIdByTypeId = new Map(types.map((pt) => [pt.id, pt.category_id]));
+
+        const typeTotals = new Map<string, { productCount: number; quantityRemaining: number }>();
+        for (const p of activeProducts) {
+          const entry = typeTotals.get(p.type_id) ?? { productCount: 0, quantityRemaining: 0 };
+          entry.productCount += 1;
+          entry.quantityRemaining += p.quantity;
+          typeTotals.set(p.type_id, entry);
+        }
+
         const categoryTotals = new Map<string, { productCount: number; quantityRemaining: number }>();
         for (const p of activeProducts) {
           const categoryId = categoryIdByTypeId.get(p.type_id);
@@ -96,12 +113,27 @@ export default function AdminDashboard() {
           entry.quantityRemaining += p.quantity;
           categoryTotals.set(categoryId, entry);
         }
+
+        const typesByCategory = new Map<string, TypeStat[]>();
+        for (const pt of types) {
+          if (!pt.category_id) continue;
+          const totals = typeTotals.get(pt.id);
+          if (!totals || totals.productCount === 0) continue;
+          const list = typesByCategory.get(pt.category_id) ?? [];
+          list.push({ id: pt.id, name: pt.name, ...totals });
+          typesByCategory.set(pt.category_id, list);
+        }
+        for (const list of typesByCategory.values()) {
+          list.sort((a, b) => b.quantityRemaining - a.quantityRemaining);
+        }
+
         const categories: CategoryStat[] = (categoriesRes.data ?? [])
           .map((c) => ({
             id: c.id,
             name: c.name,
             productCount: categoryTotals.get(c.id)?.productCount ?? 0,
             quantityRemaining: categoryTotals.get(c.id)?.quantityRemaining ?? 0,
+            types: typesByCategory.get(c.id) ?? [],
           }))
           .filter((c) => c.productCount > 0);
 
@@ -154,15 +186,33 @@ export default function AdminDashboard() {
 
           <section className="dashboard-section">
             <h2>{t('dashboard.section.byCategory')}</h2>
-            <RankedList
-              emptyText={t('dashboard.noCategories')}
-              items={stats.categories.map((c) => ({
-                key: c.id,
-                title: tc(c.name),
-                subtitle: t('dashboard.productsCount', { n: c.productCount }),
-                value: t('dashboard.unitsLeft', { n: c.quantityRemaining }),
-              }))}
-            />
+            {stats.categories.length === 0 ? (
+              <p className="hint-text">{t('dashboard.noCategories')}</p>
+            ) : (
+              <div className="category-stock-list">
+                {stats.categories.map((c) => (
+                  <div key={c.id} className="category-stock-group">
+                    <div className="category-stock-header">
+                      <span className="category-stock-name">{tc(c.name)}</span>
+                      <span className="hint-text">{t('dashboard.productsCount', { n: c.productCount })}</span>
+                      <span className="category-stock-value">{t('dashboard.unitsLeft', { n: c.quantityRemaining })}</span>
+                    </div>
+                    {c.types.length > 0 && (
+                      <ul className="category-stock-types">
+                        {c.types.map((type) => (
+                          <li key={type.id} className="category-stock-type-row">
+                            <span className="category-stock-type-name">{tt(type.name)}</span>
+                            <span className="category-stock-type-value">
+                              {t('dashboard.unitsLeft', { n: type.quantityRemaining })}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="dashboard-section">

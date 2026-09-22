@@ -66,11 +66,15 @@ grant execute on function create_product(uuid, text, int, boolean, text) to auth
 revoke update (price_selling, price_acquired) on products from authenticated;
 grant update (quantity) on products to authenticated;
 
--- Public catalog view no longer reads price_selling. While rebuilding it,
+-- Public catalog view no longer reads price_selling. CREATE OR REPLACE
+-- VIEW can't drop columns, so the view has to be dropped and recreated
+-- (which also drops its grants - re-add them below). While rebuilding it,
 -- also fix a pre-existing gap where anon was never granted column access
 -- for is_multi_color/print_type (added in later migrations after the
 -- original anon grant), even though the view already exposed them.
-create or replace view products_public as
+drop view if exists products_public;
+
+create view products_public as
 select
   id, product_code, name, type_id, quantity,
   (quantity > 0) as in_stock, created_at, is_multi_color, print_type
@@ -78,6 +82,8 @@ from products
 where is_active = true;
 
 alter view products_public set (security_invoker = true);
+
+grant select on products_public to anon, authenticated;
 
 revoke select (price_selling) on products from anon;
 grant select (id, product_code, name, type_id, quantity, is_active, created_at, is_multi_color, print_type)
