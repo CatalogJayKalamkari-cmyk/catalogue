@@ -47,3 +47,10 @@ export interface ProductImage {
   initial_quantity: number;
   color_label: string | null;
 }
+
+export interface SiteStatus {
+  id: boolean;
+  is_locked_down: boolean;
+  changed_at: string | null;
+  changed_by: string | null;
+}

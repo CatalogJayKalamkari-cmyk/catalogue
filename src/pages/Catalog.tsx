@@ -19,6 +19,7 @@ export default function Catalog() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lockedDown, setLockedDown] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -27,6 +28,18 @@ export default function Catalog() {
       setError(null);
 
       try {
+        const { data: status } = await supabase
+          .from('site_status')
+          .select('is_locked_down')
+          .eq('id', true)
+          .maybeSingle();
+
+        if (status?.is_locked_down) {
+          setLockedDown(true);
+          setLoading(false);
+          return;
+        }
+
         const [productsRes, typesRes, categoriesRes] = await Promise.all([
           supabase
             .from('products_public')
@@ -98,6 +111,15 @@ export default function Catalog() {
       return true;
     });
   }, [products, categoryFilter, typeIdToCategoryId, search]);
+
+  if (lockedDown) {
+    return (
+      <div className="page page-center">
+        <h1>{t('catalog.unavailable.title')}</h1>
+        <p>{t('catalog.unavailable.body')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="page">

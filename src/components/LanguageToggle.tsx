@@ -1,11 +1,20 @@
-import { useLanguage } from '../lib/i18n';
+import { useLanguage, LANGUAGE_LABELS, type Lang } from '../lib/i18n';
 
 export function LanguageToggle() {
-  const { lang, toggleLang } = useLanguage();
+  const { lang, setLang } = useLanguage();
 
   return (
-    <button className="language-toggle" onClick={toggleLang} aria-label="Toggle language">
-      {lang === 'en' ? 'EN' : 'TEL'}
-    </button>
+    <select
+      className="language-toggle"
+      value={lang}
+      onChange={(e) => setLang(e.target.value as Lang)}
+      aria-label="Select language"
+    >
+      {(Object.keys(LANGUAGE_LABELS) as Lang[]).map((code) => (
+        <option key={code} value={code}>
+          {LANGUAGE_LABELS[code]}
+        </option>
+      ))}
+    </select>
   );
 }

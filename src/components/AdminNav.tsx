@@ -1,10 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useLanguage } from '../lib/i18n';
+import { useAuth } from '../lib/AuthContext';
+import { isSuperAdminEmail } from '../lib/superAdmin';
 
 export function AdminNav() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { session } = useAuth();
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -22,6 +25,11 @@ export function AdminNav() {
       <NavLink to="/admin/products/new" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
         {t('nav.add')}
       </NavLink>
+      {isSuperAdminEmail(session?.user?.email) && (
+        <NavLink to="/admin/system" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+          {t('nav.system')}
+        </NavLink>
+      )}
       <button className="nav-link nav-logout" onClick={handleLogout}>
         {t('nav.logout')}
       </button>
