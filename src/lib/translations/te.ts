@@ -300,6 +300,13 @@ export const types: Record<string, string> = {
   'Kalamkari Running Fabric': 'కలంకారి రన్నింగ్ ఫాబ్రిక్',
   'Kalamkari Curtain Fabric': 'కలంకారి కర్టెన్ ఫాబ్రిక్',
   'Kalamkari Upholstery Fabric': 'కలంకారి అప్హోల్‌స్టరీ ఫాబ్రిక్',
+
+  // Custom sub-type names added directly by the admin (not part of the
+  // 159 seeded names above) - kept in sync manually since there's no way
+  // to auto-translate a name typed in on the fly.
+  'Cotton sarees': 'కాటన్ చీరలు',
+  multi: 'మల్టి',
+  New: 'కొత్త',
 };
 
 // The 16 fixed product categories are database rows (not static UI copy),

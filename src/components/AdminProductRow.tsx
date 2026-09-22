@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase, productImageUrl } from '../lib/supabaseClient';
+import { supabase, productImageUrl, PRODUCT_IMAGES_BUCKET } from '../lib/supabaseClient';
 import type { AdminProduct } from '../types';
 import { AdminProductPhotos } from './AdminProductPhotos';
 import { useLanguage } from '../lib/i18n';
@@ -46,12 +46,37 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
   async function deleteProduct() {
     setSaving(true);
+    // Grab the photo paths before the DB row (and its product_images rows,
+    // via cascade) disappear - deleting the product never touches Storage
+    // on its own, so without this the actual photo files would leak
+    // forever even though nothing references them any more.
+    const { data: images } = await supabase
+      .from('product_images')
+      .select('storage_path')
+      .eq('product_id', product.id);
+
     const { error } = await supabase.rpc('delete_product', { p_product_id: product.id });
     setSaving(false);
     if (error) {
       setError(error.message);
       setConfirmingDelete(false);
       return;
+    }
+
+    // Only remove files nothing else still references - bulk test-data
+    // products intentionally share the same placeholder image across many
+    // rows, so blindly deleting every path here would break the siblings.
+    const paths = [...new Set((images ?? []).map((img) => img.storage_path))];
+    if (paths.length > 0) {
+      const { data: stillReferenced } = await supabase
+        .from('product_images')
+        .select('storage_path')
+        .in('storage_path', paths);
+      const stillUsed = new Set((stillReferenced ?? []).map((img) => img.storage_path));
+      const orphaned = paths.filter((p) => !stillUsed.has(p));
+      if (orphaned.length > 0) {
+        await supabase.storage.from(PRODUCT_IMAGES_BUCKET).remove(orphaned);
+      }
     }
     onChanged();
   }
