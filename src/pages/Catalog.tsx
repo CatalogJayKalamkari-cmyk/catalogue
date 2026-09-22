@@ -6,8 +6,8 @@ import { ProductViewer } from '../components/ProductViewer';
 import { useLanguage } from '../lib/i18n';
 
 // V1 keeps this un-paginated — fine for a small/medium manufacturer catalog.
-// If the list grows into the thousands, switch to keyset pagination here.
-const CATALOG_LIMIT = 500;
+// If the list grows into the tens of thousands, switch to keyset pagination here.
+const CATALOG_LIMIT = 5000;
 
 export default function Catalog() {
   const { t, tc } = useLanguage();

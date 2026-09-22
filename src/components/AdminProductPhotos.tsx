@@ -24,7 +24,6 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
   const [uploading, setUploading] = useState(false);
   const [replacingImageId, setReplacingImageId] = useState<string | null>(null);
   const [savingImageId, setSavingImageId] = useState<string | null>(null);
-  const [imageVersion, setImageVersion] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,11 +72,28 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
     setReplacingImageId(img.id);
     try {
       const webp = await processImageToWebp(file);
+      // Upload to a brand-new path rather than overwriting img.storage_path:
+      // the old path's URL is already cached (browser + CDN) everywhere it's
+      // been shown (catalog cards, viewer, admin list), and overwriting the
+      // same file at the same URL never invalidates those caches, so the
+      // stale photo keeps showing everywhere except this one screen. A new
+      // path means a new URL, which sidesteps every cache automatically.
+      const newPath = `${productCode}/${img.sort_order}-${Date.now()}.webp`;
       const { error: uploadError } = await supabase.storage
         .from(PRODUCT_IMAGES_BUCKET)
-        .upload(img.storage_path, webp, { contentType: 'image/webp', upsert: true });
+        .upload(newPath, webp, { contentType: 'image/webp' });
       if (uploadError) throw new Error(uploadError.message);
-      setImageVersion(Date.now());
+
+      const { error: updateError } = await supabase
+        .from('product_images')
+        .update({ storage_path: newPath })
+        .eq('id', img.id);
+      if (updateError) throw new Error(updateError.message);
+
+      const oldPath = img.storage_path;
+      await supabase.storage.from(PRODUCT_IMAGES_BUCKET).remove([oldPath]);
+
+      load();
     } catch (err) {
       setError(err instanceof Error ? err.message : t('photos.couldNotReplace'));
     } finally {
@@ -132,7 +148,7 @@ export function AdminProductPhotos({ productId, productCode, isMultiColor }: Pro
       {images.map((img) => (
         <div key={img.id} className="admin-photo-item">
           <div className="admin-photo-thumb">
-            <img src={`${productImageUrl(img.storage_path)}?v=${imageVersion}`} alt="" />
+            <img src={productImageUrl(img.storage_path)} alt="" />
             {isMultiColor && img.quantity === 0 && <span className="badge badge-out">{t('photos.sold')}</span>}
           </div>
           <label className="image-replace-control">

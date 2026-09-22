@@ -62,6 +62,8 @@ export const ui: UiDict = {
   'row.edit': 'திருத்து',
   'row.archive': 'காப்பகப்படுத்து',
   'row.unarchive': 'காப்பகத்திலிருந்து மீட்டெடு',
+  'row.delete': 'நீக்கு',
+  'row.deleteConfirm': 'இந்த தயாரிப்பை நிரந்தரமாக நீக்கவா? இதை மீட்டெடுக்க முடியாது.',
   'row.done': 'முடிந்தது',
   'row.save': 'சேமி',
 

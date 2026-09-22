@@ -60,6 +60,8 @@ export const ui: UiDict = {
   'row.edit': 'సవరించు',
   'row.archive': 'ఆర్కైవ్ చేయి',
   'row.unarchive': 'ఆర్కైవ్ తీసివేయి',
+  'row.delete': 'తొలగించు',
+  'row.deleteConfirm': 'ఈ ఉత్పత్తిని శాశ్వతంగా తొలగించాలా? దీన్ని వెనక్కి తీసుకోలేరు.',
   'row.done': 'పూర్తయింది',
   'row.save': 'సేవ్ చేయి',
 

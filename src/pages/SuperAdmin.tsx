@@ -4,6 +4,7 @@ import { useAuth } from '../lib/AuthContext';
 import { isSuperAdminEmail } from '../lib/superAdmin';
 import { getStorageUsedBytes, storagePct } from '../lib/storageUsage';
 import { runFullExport, downloadBlob } from '../lib/exportData';
+import { runSeedTestData, type SeedResult } from '../lib/seedTestData';
 import { TypeToConfirmButton } from '../components/TypeToConfirmButton';
 import { AdminNav } from '../components/AdminNav';
 import type { SiteStatus } from '../types';
@@ -33,6 +34,10 @@ export default function SuperAdmin() {
   const [confirmingRestore, setConfirmingRestore] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seedProgress, setSeedProgress] = useState<string | null>(null);
+  const [seedResult, setSeedResult] = useState<SeedResult | null>(null);
+  const [confirmingSeed, setConfirmingSeed] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -100,6 +105,23 @@ export default function SuperAdmin() {
       setExportProgress(null);
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleSeed() {
+    setConfirmingSeed(false);
+    setSeeding(true);
+    setSeedProgress('Starting…');
+    setError(null);
+    try {
+      const result = await runSeedTestData(setSeedProgress);
+      setSeedResult(result);
+      setSeedProgress(`Done — ${result.productsCreated} test products created across ${result.typesProcessed} types.`);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Seeding failed.');
+    } finally {
+      setSeeding(false);
     }
   }
 
@@ -200,6 +222,40 @@ export default function SuperAdmin() {
           {exporting ? 'Exporting…' : 'Download complete backup'}
         </button>
         {exportProgress && <p className="hint-text">{exportProgress}</p>}
+      </section>
+
+      <section className="dashboard-section danger-zone">
+        <h2>Dev Tools: Seed Test Data</h2>
+        <p className="hint-text">
+          Creates 10 active test products for every product sub-type (2 shared placeholder photos per
+          sub-type, not per product, to keep storage cost tiny). These are real, publicly visible products —
+          use the cleanup SQL shown below when you're done testing.
+        </p>
+        {seeding ? (
+          <p className="hint-text">{seedProgress}</p>
+        ) : confirmingSeed ? (
+          <div className="row-inline">
+            <button className="btn btn-primary" onClick={handleSeed}>
+              Confirm: create test products
+            </button>
+            <button className="btn btn-secondary" onClick={() => setConfirmingSeed(false)}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button className="btn btn-secondary" onClick={() => setConfirmingSeed(true)}>
+            Generate test data
+          </button>
+        )}
+        {seedResult && (
+          <>
+            <p className="hint-text">{seedProgress}</p>
+            <p className="hint-text">When you're done testing, run this in the Supabase SQL editor to remove them:</p>
+            <code className="type-confirm-input" style={{ display: 'block', wordBreak: 'break-all' }}>
+              {seedResult.cleanupSql}
+            </code>
+          </>
+        )}
       </section>
 
       <AdminNav />

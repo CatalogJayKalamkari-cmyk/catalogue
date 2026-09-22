@@ -61,6 +61,8 @@ export const ui: UiDict = {
   'row.edit': 'ಸಂಪಾದಿಸಿ',
   'row.archive': 'ಆರ್ಕೈವ್ ಮಾಡಿ',
   'row.unarchive': 'ಆರ್ಕೈವ್ ತೆಗೆದುಹಾಕಿ',
+  'row.delete': 'ಅಳಿಸಿ',
+  'row.deleteConfirm': 'ಈ ಉತ್ಪನ್ನವನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸುವುದೇ? ಇದನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗುವುದಿಲ್ಲ.',
   'row.done': 'ಮುಗಿದಿದೆ',
   'row.save': 'ಉಳಿಸಿ',
 

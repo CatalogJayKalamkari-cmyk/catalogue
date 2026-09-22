@@ -18,6 +18,7 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
   const [quantity, setQuantity] = useState(String(product.quantity));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   async function saveEdit() {
     setError(null);
@@ -40,6 +41,18 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
       return;
     }
     setMode('view');
+    onChanged();
+  }
+
+  async function deleteProduct() {
+    setSaving(true);
+    const { error } = await supabase.rpc('delete_product', { p_product_id: product.id });
+    setSaving(false);
+    if (error) {
+      setError(error.message);
+      setConfirmingDelete(false);
+      return;
+    }
     onChanged();
   }
 
@@ -125,13 +138,28 @@ export function AdminProductRow({ product, imagePath, onChanged }: Props) {
 
         {error && <p className="error-text">{error}</p>}
 
-        {mode === 'view' && (
+        {mode === 'view' && !confirmingDelete && (
           <div className="row-actions">
             <button className="btn btn-secondary" onClick={() => setMode('edit')}>
               {t('row.edit')}
             </button>
             <button className="btn btn-secondary" disabled={saving} onClick={toggleArchive}>
               {product.is_active ? t('row.archive') : t('row.unarchive')}
+            </button>
+            <button className="btn btn-danger" disabled={saving} onClick={() => setConfirmingDelete(true)}>
+              {t('row.delete')}
+            </button>
+          </div>
+        )}
+
+        {confirmingDelete && (
+          <div className="row-actions">
+            <span className="hint-text">{t('row.deleteConfirm')}</span>
+            <button className="btn btn-danger" disabled={saving} onClick={deleteProduct}>
+              {t('row.delete')}
+            </button>
+            <button className="btn btn-secondary" onClick={() => setConfirmingDelete(false)}>
+              {t('row.cancel')}
             </button>
           </div>
         )}

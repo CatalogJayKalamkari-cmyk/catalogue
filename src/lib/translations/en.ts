@@ -59,6 +59,8 @@ export const ui = {
   'row.edit': 'Edit',
   'row.archive': 'Archive',
   'row.unarchive': 'Unarchive',
+  'row.delete': 'Delete',
+  'row.deleteConfirm': 'Delete this product permanently? This cannot be undone.',
   'row.done': 'Done',
   'row.save': 'Save',
 

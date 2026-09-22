@@ -61,6 +61,8 @@ export const ui: UiDict = {
   'row.edit': 'সম্পাদনা করুন',
   'row.archive': 'আর্কাইভ করুন',
   'row.unarchive': 'আর্কাইভ থেকে সরান',
+  'row.delete': 'মুছুন',
+  'row.deleteConfirm': 'এই পণ্যটি স্থায়ীভাবে মুছে ফেলবেন? এটি পূর্বাবস্থায় ফেরানো যাবে না।',
   'row.done': 'সম্পন্ন',
   'row.save': 'সংরক্ষণ করুন',
 

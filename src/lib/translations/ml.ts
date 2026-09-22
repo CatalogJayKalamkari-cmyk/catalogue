@@ -61,6 +61,8 @@ export const ui: UiDict = {
   'row.edit': 'തിരുത്തുക',
   'row.archive': 'ആർക്കൈവ് ചെയ്യുക',
   'row.unarchive': 'ആർക്കൈവിൽ നിന്ന് നീക്കുക',
+  'row.delete': 'ഇല്ലാതാക്കുക',
+  'row.deleteConfirm': 'ഈ ഉൽപ്പന്നം ശാശ്വതമായി ഇല്ലാതാക്കണോ? ഇത് തിരികെ കിട്ടില്ല.',
   'row.done': 'പൂർത്തിയായി',
   'row.save': 'സേവ് ചെയ്യുക',
 

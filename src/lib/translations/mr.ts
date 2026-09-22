@@ -61,6 +61,8 @@ export const ui: UiDict = {
   'row.edit': 'संपादित करा',
   'row.archive': 'संग्रहित करा',
   'row.unarchive': 'संग्रहणातून काढा',
+  'row.delete': 'हटवा',
+  'row.deleteConfirm': 'हे उत्पादन कायमचे हटवायचे आहे का? हे पूर्ववत करता येणार नाही.',
   'row.done': 'पूर्ण झाले',
   'row.save': 'जतन करा',
 
